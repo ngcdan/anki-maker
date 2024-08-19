@@ -31,6 +31,7 @@ interface CardProps {
 }
 
 const NoteComponent: React.FC<CardProps> = ({ note, onTrash, onCreate }) => {
+
   const [currentNote, setCurrentNote] = useState(note);
 
   const { modelName, deckName, fields, tags, trashed, created } = currentNote;
@@ -67,50 +68,23 @@ const NoteComponent: React.FC<CardProps> = ({ note, onTrash, onCreate }) => {
         <CardContent>
           <Grid container spacing={2}>
             <Grid item xs={6}>
-              <TextField
-                label="Deck"
-                value={deckName}
-                disabled
-              />
+              <TextField label="Deck" value={deckName} disabled />
             </Grid>
             <Grid item xs={6}>
-              <TextField
-                label="Note type"
-                value={modelName}
-                disabled
-              />
+              <TextField label="Note type" value={modelName} disabled />
             </Grid>
             <Grid item xs={12}>
-              <Autocomplete
-                id="tags"
-                multiple
-                autoHighlight
-                freeSolo
-                value={tags}
-                options={allTags || []}
-                onChange={handleTagsChange}
-                renderInput={(params) => <TextField label="Tags" {...params} />}
-              />
+              <Autocomplete id="tags" multiple autoHighlight freeSolo
+                value={tags} options={allTags || []} onChange={handleTagsChange}
+                renderInput={(params) => <TextField label="Tags" {...params} />} />
             </Grid>
             <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Front"
-                defaultValue={fields.Front}
-                multiline
-                onChange={handleFieldChange}
-                name="Front"
-              />
+              <TextField fullWidth label="Front" defaultValue={fields.Front} multiline name="Front"
+                onChange={handleFieldChange} />
             </Grid>
             <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Back"
-                defaultValue={fields.Back}
-                multiline
-                onChange={handleFieldChange}
-                name="Back"
-              />
+              <TextField fullWidth label="Back" defaultValue={fields.Back} multiline name="Back"
+                onChange={handleFieldChange} />
             </Grid>
           </Grid>
         </CardContent>
