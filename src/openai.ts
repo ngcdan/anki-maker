@@ -40,30 +40,9 @@ Front: Which Roman emperor divided the Roman empire?
 Back: Diocletian`;
 };
 
-const vocabEnglishPrompt = (notes: Note[]) => {
-  let outstandingCards = notes
-    .filter(n => !n.trashed && !n.created)
-    .map(note => `Front: ${note.fields.Front}\nBack: ${note.fields.Back}`)
-    .join('\n');
-  let trashedCards = notes
-    .filter(n => n.trashed)
-    .map(note => `Front: ${note.fields.Front}\nBack: ${note.fields.Back}`)
-    .join('\n');
-  let createdCards = notes
-    .filter(n => n.created)
-    .map(note => `Front: ${note.fields.Front}\nBack: ${note.fields.Back}`)
-    .join('\n');
-
+const vocabEnglishPrompt = (_notes: Note[]) => {
   return `You are an assistant assigned to create Anki cards.
       Make cards concise but contextual.
-
-      Really, the questions and answers shouldn't be more than a sentence each.
-
-      ${trashedCards.length > 0 && "The user already rejected these cards:" + trashedCards}
-
-      ${createdCards.length > 0 && "The user created these cards: " + createdCards}
-
-      ${outstandingCards.length > 0 && "The user hasn't taken an action on these suggested cards: " + outstandingCards}
 
       If the user provides a list of words, you will generate a number of tags corresponding to that number of words.
       The list of words can be separated by commas or line breaks.
@@ -73,8 +52,7 @@ const vocabEnglishPrompt = (notes: Note[]) => {
       Front:
        ### Từ: **X (loại từ)** (/[phát âm]/)
 
-       - If someone says, *Ví dụ câu sử dụng từ X*.
-      They mean [giải thích ý nghĩa từ trong ngữ cảnh câu].
+       - If someone says, *Ví dụ câu sử dụng từ X*, they mean [giải thích ý nghĩa từ trong ngữ cảnh câu].
 
       Back:
       1. **Giải thích bằng tiếng Anh (theo Cambridge Dictionary):**
@@ -101,8 +79,7 @@ const vocabEnglishPrompt = (notes: Note[]) => {
       Front:
       ### Từ: **Chaotic (adj)** ( /keɪˈɒtɪk/ )
 
-      - If someone says, *The traffic was chaotic*.
-        They mean that the traffic was in a state of complete confusion and disorder.
+      - If someone says, *The traffic was chaotic*, they mean that the traffic was in a state of complete confusion and disorder.
 
       Back:
       1. **Giải thích bằng tiếng Anh (theo Cambridge Dictionary):**
@@ -139,6 +116,8 @@ export async function suggestAnkiNotes(
 ): Promise<any> {
   console.log('-------------- suggestAnkiNotes ----------------');
 
+  console.log(openAIKey);
+
   const body = {
     model: 'gpt-4o-mini',
     messages: [
@@ -172,12 +151,25 @@ export async function suggestAnkiNotes(
   let result: any[] = [];
 
   const regex = /Front:([\s\S]*?)Back:([\s\S]*?)(?=Front|$)/g;
-
   let match: any;
+
+  const audioRegex = /-\s*\*?(.*?)\*?\.\s*(.*?)(?=\s*[-\n]|$)/s;
+
+  let audios: string[] = []
   while ((match = regex.exec(noteContent)) !== null) {
+    const matchAudio = match[1].trim().match(audioRegex);
+
+    if (matchAudio) {
+      const sample = matchAudio[1].trim();
+      audios.push(sample);
+    } else {
+      console.log('No match found.');
+    }
+
     result.push({
       Front: match[1].trim(),
-      Back: match[2].trim()
+      Back: match[2].trim(),
+      Audio: audios
     });
   }
 

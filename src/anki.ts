@@ -1,3 +1,4 @@
+
 const ankiConnect = async (params: any) => {
   const res = await fetch('http://localhost:8765', {
     method: "POST",
@@ -21,6 +22,10 @@ const ankiConnect = async (params: any) => {
 
 export const fetchTags = async (): Promise<string[]> => {
   return ankiConnect({ action: "getTags" });
+}
+
+export const fetchMediaDirPath = async (): Promise<string[]> => {
+  return ankiConnect({ action: "getMediaDirPath" });
 }
 
 export const fetchDecks = async (): Promise<string[]> => {

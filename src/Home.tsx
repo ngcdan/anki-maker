@@ -1,4 +1,4 @@
-import { Card, CardActionArea, CardContent, Typography, Link } from '@mui/material';
+import { Card, CardActionArea, CardContent, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
 const Bookmarklet = () => {

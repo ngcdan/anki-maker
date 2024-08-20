@@ -17,7 +17,7 @@ import useLocalStorage from './useLocalStorage';
 interface Note {
   modelName: string;
   deckName: string;
-  fields: { Front: string, Back: string };
+  fields: { Front: string, Back: string, Audio?: string[] };
   tags: string[];
   key: string;
   trashed?: boolean;
@@ -62,6 +62,45 @@ const NoteComponent: React.FC<CardProps> = ({ note, onTrash, onCreate }) => {
     queryKey: ["tags"]
   });
 
+  const onAddNote = async () => {
+
+    try {
+      let front = marked.parse(currentNote.fields.Front || '')
+      let back = marked.parse(currentNote.fields.Back || '')
+      let audioTexts: any = currentNote.fields.Audio || []
+      let migrateNote: any = { ...currentNote, fields: { Front: front, Back: back } }
+
+      if (audioTexts.length > 0) {
+        const response: any = await fetch('http://localhost:3000/chatbot/tts/api', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', },
+          body: JSON.stringify({
+            text: audioTexts[0], download: true,
+            dir: `/Users/linuss/Dev/resources/anki`
+          }),
+        });
+
+        console.log(audioTexts);
+        const responseData = await response.json();
+        console.log(responseData);
+
+        let audio = [{
+          "path": responseData['filePath'],
+          "filename": responseData['fileName'],
+          "skipHash": "7e2c2f954ef6051373ba916f000168dc",
+          "fields": [
+            "Front"
+          ]
+        }]
+        migrateNote = { ...currentNote, fields: { Front: front, Back: back }, audio: audio }
+      }
+
+      return mutate(migrateNote)
+    } catch (error) {
+      console.error('Error adding note:', error);
+    }
+  }
+
   return !trashed && !created && (
     <Grid item xs={12} md={6}>
       <Card>
@@ -92,14 +131,7 @@ const NoteComponent: React.FC<CardProps> = ({ note, onTrash, onCreate }) => {
           <Button size="small" color="secondary" onClick={() => onTrash()}>
             Trash
           </Button>
-          <Button size="small" color="primary" onClick={() => {
-            console.log('saving', currentNote);
-            let front = marked.parse(currentNote.fields.Front || '')
-            let back = marked.parse(currentNote.fields.Back || '')
-            let migrateNote = { ...currentNote, fields: { Front: front, Back: back } }
-            return mutate(migrateNote)
-          }}
-            disabled={isLoading} >
+          <Button size="small" color="primary" onClick={() => onAddNote()} disabled={isLoading} >
             Add note
           </Button>
         </CardActions>
@@ -135,6 +167,7 @@ function Home() {
   const [notes, setNotes] = useState<Note[]>([])
 
   const [deckName, setDeckName] = useLocalStorage("deckName", "Default");
+
   const modelName = "Basic";
 
   const [currentTags, setCurrentTags] = useLocalStorage<string[]>("tags", []);
@@ -158,26 +191,25 @@ function Home() {
   }, [promptParam])
 
   return (
-    <Grid container sx={{ padding: "25px", maxWidth: 1200 }} spacing={4} justifyContent="flex-start"
-      direction="column"
-    >
+    <Grid container sx={{ padding: "25px", maxWidth: 1200 }} spacing={4} justifyContent="flex-start" direction="column" >
       {ankiError ?
-        <Alert severity="error" sx={{ marginTop: "20px", marginLeft: "25px" }}>Error: We can't connect to Anki using AnkiConnect. Please make sure Anki is running and you have the AnkiConnect plugin enabled, and that you have set the CORS settings.</Alert>
+        <Alert severity="error" sx={{ marginTop: "20px", marginLeft: "25px" }}>
+          Error: We can't connect to Anki using AnkiConnect.
+          Please make sure Anki is running and you have the AnkiConnect plugin enabled, and that you have set the CORS settings.
+        </Alert>
         : <></>}
       {openAIError ?
-        <Alert severity="error" sx={{ marginTop: "20px", marginLeft: "25px" }}>Error: We can't connect to OpenAI. Ensure you have entered your OpenAI key correctly.</Alert>
+        <Alert severity="error" sx={{ marginTop: "20px", marginLeft: "25px" }}>
+          Error: We can't connect to OpenAI. Ensure you have entered your OpenAI key correctly.
+        </Alert>
         : <></>}
+
       <Grid container item direction="column" spacing={2} justifyContent="flex-start">
         <Grid item>
           <FormControl fullWidth>
             <InputLabel id="deck-label">Deck</InputLabel>
-            <Select
-              labelId="deck-label"
-              label="Deck"
-              id="deck"
-              value={deckName}
-              onChange={e => { e.target.value && setDeckName(e.target.value) }}
-            >
+            <Select labelId="deck-label" label="Deck" id="deck" value={deckName}
+              onChange={e => { e.target.value && setDeckName(e.target.value) }} >
               {decks && decks.map(deckName =>
                 <MenuItem key={"deck" + deckName} value={deckName}>{deckName}</MenuItem>)}
             </Select>
@@ -185,35 +217,19 @@ function Home() {
         </Grid>
         <Grid item>
           <FormControl fullWidth>
-            <Autocomplete
-              id="tags"
-              multiple
-              autoHighlight
-              value={currentTags}
-              options={tags || []}
-              onChange={(_, value) => { value && setCurrentTags(value) }}
-              freeSolo
-              renderInput={(params) => <TextField label="Tags" {...params} />}
-            />
+            <Autocomplete id="tags" multiple autoHighlight value={currentTags} options={tags || []}
+              onChange={(_, value) => { value && setCurrentTags(value) }} freeSolo
+              renderInput={(params) => <TextField label="Tags" {...params} />} />
           </FormControl>
         </Grid>
         <Grid item>
           <FormControl fullWidth>
-            <TextField
-              id="prompt"
-              label="Prompt"
-              maxRows={10}
-              multiline
-              value={prompt}
-              onChange={e => setPrompt(e.target.value)}
-            />
+            <TextField id="prompt" label="Prompt" maxRows={10} multiline value={prompt}
+              onChange={e => setPrompt(e.target.value)} />
           </FormControl>
         </Grid>
         <Grid item>
-          <Button
-            variant="contained"
-            color="primary"
-            disabled={isLoading}
+          <Button variant="contained" color="primary" disabled={isLoading}
             onClick={(_: any) => mutate({ deckName, modelName, tags: currentTags, prompt })}>
             Suggest cards
           </Button>
@@ -227,9 +243,7 @@ function Home() {
           .filter(n => !n.trashed)
           .filter(n => !n.created)
           .map((note) =>
-            <NoteComponent
-              key={note.key}
-              note={note}
+            <NoteComponent key={note.key} note={note}
               onTrash={() => {
                 setNotes(notes => notes.map((n) => note.key === n.key ? { ...n, trashed: true } : n))
               }}
