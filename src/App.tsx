@@ -71,30 +71,31 @@ const NoteComponent: React.FC<CardProps> = ({ note, onTrash, onCreate }) => {
       let migrateNote: any = { ...currentNote, fields: { Front: front, Back: back } }
 
       if (audioTexts.length > 0) {
-        const response: any = await fetch('http://localhost:3000/chatbot/tts/api', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', },
-          body: JSON.stringify({
-            text: audioTexts[0], download: true,
-            dir: `/Users/linuss/Dev/resources/anki`
-          }),
-        });
+        let audio = []
 
-        console.log(audioTexts);
-        const responseData = await response.json();
-        console.log(responseData);
+        for (let sel of audioTexts) {
+          const response: any = await fetch('http://localhost:3000/dev/chatbot/tts/api', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', },
+            body: JSON.stringify({
+              text: sel, download: true,
+              dir: `/Users/linuss/Dev/resources/anki`
+            }),
+          });
 
-        let audio = [{
-          "path": responseData['filePath'],
-          "filename": responseData['fileName'],
-          "skipHash": "7e2c2f954ef6051373ba916f000168dc",
-          "fields": [
-            "Front"
-          ]
-        }]
+          const responseData = await response.json();
+          audio.push({
+            "path": responseData['filePath'],
+            "filename": responseData['fileName'],
+            "skipHash": "7e2c2f954ef6051373ba916f000168dc",
+            "fields": [
+              "Front"
+            ]
+          })
+        }
+
         migrateNote = { ...currentNote, fields: { Front: front, Back: back }, audio: audio }
       }
-
       return mutate(migrateNote)
     } catch (error) {
       console.error('Error adding note:', error);
