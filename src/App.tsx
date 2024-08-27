@@ -154,52 +154,73 @@ function Home() {
 
   const promptParam = query.get('prompt') || "";
 
-  const { data: decks, error: ankiError } = useQuery({
-    queryFn: fetchDecks,
-    queryKey: ["decks"],
-    retry: false
-  });
+  const [decks, setDecks] = useState<any[]>([]);
+  const [tags, setTags] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<Error | null>(null);
 
-  const { data: tags } = useQuery({
-    queryFn: fetchTags,
-    queryKey: ["tags"],
-  });
-
-  const [notes, setNotes] = useState<Note[]>([])
-
-  const [deckName, setDeckName] = useLocalStorage("deckName", "Default");
-
-  const modelName = "Basic";
-
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [deckName, setDeckName] = useLocalStorage("deckName", "CS");
   const [currentTags, setCurrentTags] = useLocalStorage<string[]>("tags", []);
-
-  const { openAIKey } = useContext(OpenAIKeyContext);
-
-  const { isLoading, mutate, error: openAIError } = useMutation({
-    mutationFn: (data: Options) => suggestAnkiNotes(openAIKey, data, notes),
-    onSuccess: (newNotes) => {
-      setNotes(notes => [...notes, ...newNotes])
-    }
-  });
-
   const [prompt, setPrompt] = useState(promptParam);
 
-  // If there's an initial prompt param, kick it off immediately
+  const modelName = "Basic";
+  const { openAIKey } = useContext(OpenAIKeyContext);
+
+  // State for managing suggestion process
+  const [isSuggesting, setIsSuggesting] = useState<boolean>(false);
+  const [suggestError, setSuggestError] = useState<Error | null>(null);
+
   useEffect(() => {
-    if (promptParam !== "") {
-      mutate({ deckName, modelName, tags: currentTags, prompt: promptParam })
+    const fetchData = async () => {
+      try {
+        const [decksData, tagsData] = await Promise.all([fetchDecks(), fetchTags()]);
+        setDecks(decksData);
+        setTags(tagsData);
+      } catch (error) {
+        setError(error as Error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Function to suggest notes using OpenAI
+  const suggestNotes = async (options: Options) => {
+    setIsSuggesting(true);
+    setSuggestError(null);
+    try {
+      const newNotes = await suggestAnkiNotes(openAIKey, options, notes);
+      setNotes((prevNotes) => [...prevNotes, ...newNotes]);
+    } catch (error) {
+      setSuggestError(error as Error);
+    } finally {
+      setIsSuggesting(false);
+    }
+  };
+
+
+  // If there's an initial prompt param, trigger suggestion
+  useEffect(() => {
+    if (promptParam.trim() !== "") {
+      suggestNotes({ deckName, modelName, tags: currentTags, prompt: promptParam });
     }
   }, [promptParam])
 
+  console.log('--------------------------------------------------------');
+  console.log(decks);
+
   return (
     <Grid container sx={{ padding: "25px", maxWidth: 1200 }} spacing={4} justifyContent="flex-start" direction="column" >
-      {ankiError ?
+      {error || loading ?
         <Alert severity="error" sx={{ marginTop: "20px", marginLeft: "25px" }}>
           Error: We can't connect to Anki using AnkiConnect.
           Please make sure Anki is running and you have the AnkiConnect plugin enabled, and that you have set the CORS settings.
         </Alert>
         : <></>}
-      {openAIError ?
+      {suggestError ?
         <Alert severity="error" sx={{ marginTop: "20px", marginLeft: "25px" }}>
           Error: We can't connect to OpenAI. Ensure you have entered your OpenAI key correctly.
         </Alert>
@@ -216,6 +237,7 @@ function Home() {
             </Select>
           </FormControl>
         </Grid>
+
         <Grid item>
           <FormControl fullWidth>
             <Autocomplete id="tags" multiple autoHighlight value={currentTags} options={tags || []}
@@ -230,14 +252,14 @@ function Home() {
           </FormControl>
         </Grid>
         <Grid item>
-          <Button variant="contained" color="primary" disabled={isLoading}
-            onClick={(_: any) => mutate({ deckName, modelName, tags: currentTags, prompt })}>
+          <Button variant="contained" color="primary" disabled={isSuggesting}
+            onClick={() => suggestNotes({ deckName, modelName, tags: currentTags, prompt })}>
             Suggest cards
           </Button>
         </Grid>
       </Grid>
       <Grid container item>
-        {isLoading && <CircularProgress />}
+        {(loading || isSuggesting) && <CircularProgress />}
       </Grid>
       <Grid container item spacing={2} alignItems="stretch">
         {notes
@@ -254,7 +276,7 @@ function Home() {
             />
           )}
       </Grid>
-    </Grid>
+    </Grid >
   );
 }
 
