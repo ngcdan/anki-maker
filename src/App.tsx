@@ -10,14 +10,14 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { useContext, useState, useEffect } from 'react';
 
 import { addNote, fetchDecks, fetchTags } from './anki';
-import { suggestAnkiNotes } from './openai';
+import { generateAudioNote, suggestAnkiNotes } from './openai';
 import { OpenAIKeyContext } from './OpenAIKeyContext';
 import useLocalStorage from './useLocalStorage';
 
 interface Note {
   modelName: string;
   deckName: string;
-  fields: { Front: string, Back: string, Audio?: string[] };
+  fields: { Front: string, Back: string, Question: string, Ans: string, Audio?: string[] };
   tags: string[];
   key: string;
   trashed?: boolean;
@@ -63,38 +63,28 @@ const NoteComponent: React.FC<CardProps> = ({ note, onTrash, onCreate }) => {
   });
 
   const onAddNote = async () => {
-
     try {
-      let front = marked.parse(currentNote.fields.Front || '')
-      let back = marked.parse(currentNote.fields.Back || '')
       let audioTexts: any = currentNote.fields.Audio || []
-      let migrateNote: any = { ...currentNote, fields: { Front: front, Back: back } }
+      let fields = currentNote.fields
+      let updateFields = {
+        ...fields,
+        Front: marked.parse(fields.Front),
+        Back: marked.parse(fields.Back),
+      }
 
+      let migrateNote: any = { ...currentNote, fields: updateFields }
       if (audioTexts.length > 0) {
-        let audio = []
-
-        for (let sel of audioTexts) {
-          const response: any = await fetch('http://localhost:3000/dev/chatbot/tts/api', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', },
-            body: JSON.stringify({
-              text: sel, download: true,
-              dir: `/Users/linuss/Dev/resources/anki`
-            }),
-          });
-
-          const responseData = await response.json();
-          audio.push({
+        const responseData: any = generateAudioNote(audioTexts[0]);
+        migrateNote['audio'] = [
+          {
             "path": responseData['filePath'],
             "filename": responseData['fileName'],
             "skipHash": "7e2c2f954ef6051373ba916f000168dc",
             "fields": [
               "Front"
             ]
-          })
-        }
-
-        migrateNote = { ...currentNote, fields: { Front: front, Back: back }, audio: audio }
+          }
+        ]
       }
       return mutate(migrateNote)
     } catch (error) {
@@ -122,6 +112,17 @@ const NoteComponent: React.FC<CardProps> = ({ note, onTrash, onCreate }) => {
               <TextField fullWidth label="Front" defaultValue={fields.Front} multiline name="Front"
                 onChange={handleFieldChange} />
             </Grid>
+
+            <Grid item xs={12}>
+              <TextField fullWidth label="Question" defaultValue={fields.Question} multiline name="Question"
+                onChange={handleFieldChange} />
+            </Grid>
+
+            <Grid item xs={12}>
+              <TextField fullWidth label="Answer" defaultValue={fields.Ans} multiline name="Ans"
+                onChange={handleFieldChange} />
+            </Grid>
+
             <Grid item xs={12}>
               <TextField fullWidth label="Back" defaultValue={fields.Back} multiline name="Back"
                 onChange={handleFieldChange} />
@@ -164,7 +165,8 @@ function Home() {
   const [currentTags, setCurrentTags] = useLocalStorage<string[]>("tags", []);
   const [prompt, setPrompt] = useState(promptParam);
 
-  const modelName = "Basic";
+  const modelName = "Basic_cloze";
+
   const { openAIKey } = useContext(OpenAIKeyContext);
 
   // State for managing suggestion process
@@ -209,12 +211,9 @@ function Home() {
     }
   }, [promptParam])
 
-  console.log('--------------------------------------------------------');
-  console.log(decks);
-
   return (
     <Grid container sx={{ padding: "25px", maxWidth: 1200 }} spacing={4} justifyContent="flex-start" direction="column" >
-      {error || loading ?
+      {error ?
         <Alert severity="error" sx={{ marginTop: "20px", marginLeft: "25px" }}>
           Error: We can't connect to Anki using AnkiConnect.
           Please make sure Anki is running and you have the AnkiConnect plugin enabled, and that you have set the CORS settings.
@@ -261,6 +260,7 @@ function Home() {
       <Grid container item>
         {(loading || isSuggesting) && <CircularProgress />}
       </Grid>
+
       <Grid container item spacing={2} alignItems="stretch">
         {notes
           .filter(n => !n.trashed)

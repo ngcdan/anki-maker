@@ -13,7 +13,7 @@ interface OpenAIKeyContextProviderProps {
 }
 
 function OpenAIKeyContextProvider({ children }: OpenAIKeyContextProviderProps) {
-  const [openAIKey, setOpenAIKey] = useLocalStorage('openAIKey', import.meta.env.OPENAI_API_KEY);
+  const [openAIKey, setOpenAIKey] = useLocalStorage('openAIKey', import.meta.env.OPENAI_API_KEY || '');
 
   return (
     <OpenAIKeyContext.Provider value={{ openAIKey, setOpenAIKey }}>

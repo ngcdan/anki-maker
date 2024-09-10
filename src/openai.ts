@@ -3,7 +3,7 @@ import { messages } from "./vocab_prompt";
 export interface Note {
   modelName: string;
   deckName: string;
-  fields: { Front: string, Back: string };
+  fields: { Front: string, Back: string, Question: string, Ans: string, Audio?: string[] };
   tags: string[];
   key: string;
   trashed?: boolean;
@@ -81,7 +81,17 @@ export async function suggestAnkiNotes(
   const noteContent = data.choices[0].message.content;
 
   const sections = extractSections(noteContent);
-  console.log('Audio:', sections.audio);
+  if (sections.audio.length === 0) {
+    throw new Error('Audio list is empty! No audio available.');
+  }
+  const lastAudio = sections.audio[sections.audio.length - 1].toLocaleLowerCase();
+
+  const question = `{{c1::${lastAudio}}}`;
+
+  const promptRegex = new RegExp(prompt, 'gi');
+
+  let updatedFront = sections.front.replace(promptRegex, '[...]') || ''
+  let updatedBack = sections.back || ''
 
   return [
     {
@@ -89,11 +99,28 @@ export async function suggestAnkiNotes(
       deckName,
       modelName,
       fields: {
-        Front: sections.front,
-        Back: sections.back,
-        Audio: sections.audio,
+        Front: updatedFront,
+        Question: question,
+        Ans: lastAudio,
+        Back: updatedBack,
+        Audio: [lastAudio],
       },
       tags
     }
   ];
+}
+
+export async function generateAudioNote(text: string) {
+  const res: any = await fetch('http://localhost:3000/dev/chatbot/tts/api', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', },
+    body: JSON.stringify({
+      text: text, download: true,
+      dir: `/Users/linuss/Dev/resources/anki`
+    }),
+  });
+
+  if (!res.ok) throw new Error('OpenAI API TTS request failed');
+  const result = await res.json();
+  return result;
 }
