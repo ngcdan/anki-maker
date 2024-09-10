@@ -1,6 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
+import Settings from './Settings.tsx';
 import { Outlet, RouterProvider, createBrowserRouter, Link } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AppBar, Toolbar, Typography, Container } from '@mui/material';
@@ -13,6 +14,7 @@ function Root() {
       <AppBar position="static">
         <Toolbar>
           <Typography variant="h6" component={Link} to="/" color="inherit" sx={{ textDecoration: 'none' }}>anki card creator</Typography>
+          <Typography sx={{ marginLeft: 4, textDecoration: 'none' }} component={Link} to="/settings" color="inherit">Settings</Typography>
         </Toolbar>
       </AppBar>
       <Container>
@@ -30,6 +32,10 @@ const router = createBrowserRouter([
       {
         path: "",
         element: <Home />,
+      },
+      {
+        path: "settings",
+        element: <Settings />,
       },
       {
         path: "suggest",
