@@ -10,7 +10,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { useContext, useState, useEffect } from 'react';
 
 import { addNote, fetchDecks, fetchTags } from './anki';
-import { generateAudioNote, suggestAnkiNotes } from './openai';
+import { suggestAnkiNotes } from './openai';
 import { OpenAIKeyContext } from './OpenAIKeyContext';
 import useLocalStorage from './useLocalStorage';
 
