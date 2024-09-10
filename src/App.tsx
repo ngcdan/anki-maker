@@ -74,7 +74,16 @@ const NoteComponent: React.FC<CardProps> = ({ note, onTrash, onCreate }) => {
 
       let migrateNote: any = { ...currentNote, fields: updateFields }
       if (audioTexts.length > 0) {
-        const responseData: any = generateAudioNote(audioTexts[0]);
+        const response: any = await fetch('http://localhost:3000/dev/chatbot/tts/api', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', },
+          body: JSON.stringify({
+            text: audioTexts[0], download: true,
+            dir: `/Users/linuss/Dev/resources/anki`
+          }),
+        });
+
+        const responseData = await response.json();
         migrateNote['audio'] = [
           {
             "path": responseData['filePath'],
