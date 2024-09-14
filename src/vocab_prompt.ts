@@ -12,7 +12,7 @@ The Anki card structure is as follows:
 
 \`\`\`
 Front:
-  ##### Word: **[X]** (part of speech) (/[phonetic transcription]/) <br/>
+  ##### Word: **[X]** (part of speech) (/[phonetic transcription]/) - (/[phonetic transcription in Vietnamese]/) <br/>
   - *[Provide one example sentence using the word in the context of web development or general programming tasks]*,
   [explain the meaning of the word in the context of the sentence]. <br/>
 
@@ -24,6 +24,7 @@ Front:
     - *[Repeat the second example sentence from the front of the card]* <br/>
     - *[Translate the original sentence into Vietnamese]* <br/>
     - /[Phonetic transcription of the example sentence in English]/ <br/>
+    - /[Phonetic transcription of the example sentence in Vietnamese]/ <br/>
 
 2. **Synonyms:**
     - *[Provide the meaning of the word in Vietnamese]* <br/>
@@ -42,7 +43,7 @@ Additional Instructions:
 
 const optmimize = `
 Front:
-  **Word:** **Optimize** (verb) (/ˈɒp.tɪ.maɪz/)
+  **Word:** **Optimize** (verb) (/ˈɒp.tɪ.maɪz/) - op-tờ-mai-z
   - *The developer worked hard to optimize the code, ensuring the website loaded faster.*, they mean **"optimize"** here refers to making the code more efficient or better. <br/>
 
 ### Audio:  <br/>
@@ -53,7 +54,8 @@ Front:
 1. **Example:**
     - He optimized the database queries, making them more efficient for large datasets. <br/>
     - Anh ấy đã tối ưu hóa các truy vấn cơ sở dữ liệu, làm cho chúng hiệu quả hơn với tập dữ liệu lớn. <br/>
-    - /hiː ˈɒp.tɪ.maɪzd ðə ˈdeɪtəbeɪs ˈkwɪəriːz/ <br/>
+    - /hiː ˈɒptɪmaɪzd ðə ˈdeɪtəbeɪs ˈkwɪəriz, ˈmeɪkɪŋ ðəm mɔːr ɪˈfɪʃənt fə lɑːrdʒ ˈdeɪtəˌsɛts./ <br/>
+    - Hi op-tờ-mai-zd dờ đấy-tơ-bâyz que-ris, mây-king đêm mo ơ-fi-shần fờ lar-gi đây-tơ-sẹts. <br />
 
 2. **Synonyms:**
     - Tối ưu hóa <br/>
@@ -66,16 +68,18 @@ Front:
 
 const contagious = `
 ### Front:
-##### Từ: **Contagious (adj)** (/kənˈteɪdʒəs/)
+##### Từ: **Contagious (adj)** (/kənˈteɪdʒəs/) - kơn-tây-jợs
   - *Her smile was so contagious that everyone around her started to smile too*, meaning that her happiness spread quickly to others like a "virus" of good feelings.
 
 ### Audio:
-  - This flu is highly contagious, so be sure to stay home if you're feeling sick  <br/>
+  - The enthusiasm at the tech conference was contagious, making everyone eager to learn more about new technologies. <br/>
 
 ### Back:
   1. **Example**  <br/>
-    - This flu is highly contagious, so be sure to stay home if you're feeling sick  <br/>
-    - Cúm này lây lan rất nhanh, vì vậy hãy ở nhà nếu bạn cảm thấy không khỏe.  <br/>
+   - The enthusiasm at the tech conference was contagious, making everyone eager to learn more about new technologies. <br/>
+   - Sự hào hứng tại hội nghị công nghệ rất lây lan, khiến mọi người đều mong muốn tìm hiểu thêm về các công nghệ mới. <br/>
+   - /ði ɪnˈθjuːziæzəm æt ðə tɛk ˈkɒnfərəns wəz kənˈteɪʤəs, ˈmeɪkɪŋ ˈɛvriwʌn ˈiːɡər tə lɜːrn mɔːr əˈbaʊt njuː tɛkˈnɒləʤiz./ <br/>
+   - Di in-thíu-zi-a-dâm ạt dờ téc con-phờ-rừn-x wơz kơn-tây-jợs, mây-king ép-ri-quan i-gờ tờ lơn mo à-bao-niu téc-no-lơ-gi. <br />
 
   2. **Synonyms:**  <br/>
     - Lây lan, dễ lây.  <br/>
