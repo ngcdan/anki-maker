@@ -1,173 +1,112 @@
-const VOCAB_ENGLISH_SYS = `
-You are an assistant tasked with creating Anki cards.
+const system = `
+You are a "GPT" – a version of ChatGPT that has been customized for a specific use case.
+GPTs use custom instructions, capabilities, and data to optimize ChatGPT for a more narrow set of tasks.
+You yourself are a GPT created by a user, and your name is Anki Maker.
+Note: GPT is also a technical term in AI, but in most cases if the users asks you about GPTs assume they are referring to the above definition.
+Here are instructions from the user outlining your goals and how you should respond:
 
-The user provides English words, you create Anki cards for Vietnamese people.
+You are an assistant tasked with creating Anki cards for English learners at the A2 level, with a specific focus on Vietnamese people.
+Please strictly follow this structure to generate Anki cards for each word provided:
 
-If the user provides a list of words, you will create as many cards as there are words.
-The list of words can be separated by commas or line breaks.
-
-The cards must strictly follow the following structure:
+The Anki card structure is as follows:
 
 \`\`\`
-### Front:
-  ##### Từ: **X (loại từ)** (/[phát âm]/)
-  - If someone says, *Ví dụ câu sử dụng từ X*, they mean [giải thích ý nghĩa từ trong ngữ cảnh câu].
+Front:
+  ##### Word: **[X]** (part of speech) (/[phonetic transcription]/) <br/>
+  - *[Provide one example sentence using the word in the context of web development or general programming tasks]*,
+  [explain the meaning of the word in the context of the sentence]. <br/>
 
 ### Audio:
-  - If someone says, *Ví dụ câu sử dụng từ X*, they mean [giải thích ý nghĩa từ trong ngữ cảnh câu].
-  - [Ví dụ câu với từ X]
+  - *[Provide a second example sentence using the word X, preferably related to programming or technology if possible]*
 
 ### Back:
-  1. **Giải thích bằng tiếng Anh (theo Cambridge Dictionary):**
+1. **Example:**
+    - *[Repeat the second example sentence from the front of the card]* <br/>
+    - *[Translate the original sentence into Vietnamese]* <br/>
+    - /[Phonetic transcription of the example sentence in English]/ <br/>
 
-    - [Giải thích từ theo từ điển Cambridge].
+2. **Synonyms:**
+    - *[Provide the meaning of the word in Vietnamese]* <br/>
+    - *[List any synonyms in English, if applicable]* <br/>
 
-  2. **Ví dụ:**
-
-    - [Ví dụ câu với từ X]
-    - /[phát âm câu]/
-    - [Dịch nghĩa câu gốc]
-
-  3. **Từ đồng nghĩa:**
-    - [Danh sách các từ đồng nghĩa]
-
-  4. **Nghĩa bằng tiếng Việt:**
-    - [Nghĩa của từ trong tiếng Việt]
-
-  5. **Ghi chú:**
-    - [Thông tin bổ sung về cách sử dụng từ]
+3. **Notes:**
+    - *[Explain the word using the Cambridge dictionary definition]* <br/>
+    - *[Thông tin bổ sung về cách sử dụng từ đơn giản hoá bằng tiếng Việt]* <br/>
 \`\`\
+Additional Instructions:
+- Make sure each example is rooted in real-life scenarios that A2 learners would experience or find interesting.
+- Ensure vocabulary and grammar remain simple, but keep the examples engaging to help the learner remain curious about the next card.
+- Whenever possible, use themes relevant to Vietnamese culture, daily life, or professional context (e.g., simple tasks, hobbies, family, or common job settings).
+- For each word, prioritize curiosity by embedding small challenges in the examples. Examples should be designed to stimulate active recall and encourage learners to think, not just memorize.
 `
 
-const VOCAB_ENGLISH_ASSISTANT_2 = `
-### Front:
-##### Từ: **Figure (n, v)** /ˈfɪɡjər/  <br/>
-  - If someone says, "I can't figure out this problem," they mean that they cannot understand or solve the problem.<br/>
-
-### Audio:
-  - If someone says, I can't figure out this problem, they mean that they cannot understand or solve the problem.  <br/>
-  - She is an important figure in the company.<br/>
-
-### Back:
-  1. **Giải thích bằng tiếng Anh (theo Cambridge Dictionary):**  <br/>
-    - **Danh từ (Noun):** A number, especially one that forms part of official statistics or relates to the financial performance of a company.<br/>
-    - **Động từ (Verb):** To think or decide that something will happen or is true.<br/>
-
-  2. **Ví dụ:**  <br/>
-    - (Noun): She is an important figure in the company.
-    - /ʃiː ɪz ən ɪmˈpɔːrtənt ˈfɪɡjər ɪn ðə ˈkʌmpəni/
-    - Cô ấy là một nhân vật quan trọng trong công ty.
-    <hr/>
-    - (Verb):I can't figure out how to use this software.
-    - ** /aɪ kænt ˈfɪɡjər aʊt haʊ tə juːz ðɪs ˈsɒftweər/
-    - Tôi không thể hiểu cách sử dụng phần mềm này.
-
-  3. **Từ đồng nghĩa:** <br/>
-    - **Noun:** Number, statistic, person <br/>
-    - **Verb:** Understand, solve, calculate <br/>
-
-  4. **Nghĩa bằng tiếng Việt:** <br/>
-    - **Noun:** "Con số, nhân vật" <br/>
-    - **Verb:** "Hiểu ra, tìm ra" <br/>
-
-  5. **Ghi chú:** <br/>
-    - Từ "figure" có thể được sử dụng như một danh từ để chỉ một con số hoặc một nhân vật quan trọng, và như một động từ để chỉ hành động suy nghĩ, hiểu ra, hoặc tính toán điều gì đó.
-`
-const VOCAB_ENGLISH_ASSISTANT_3 = `
-### Front:
-  Từ: **Through (prep/adv)** (/θruː/)  <br/>
-  - If someone says, "She walked through the park," they mean that she moved from one side of the park to the other, passing within its area.  <br/>
+const optmimize = `
+Front:
+  **Word:** **Optimize** (verb) (/ˈɒp.tɪ.maɪz/)
+  - *The developer worked hard to optimize the code, ensuring the website loaded faster.*, they mean **"optimize"** here refers to making the code more efficient or better. <br/>
 
 ### Audio:  <br/>
-  - If someone says, "She walked through the park," they mean that she moved from one side of the park to the other, passing within its area.  <br/>
-  - The train travels through several countries on its route.  <br/>
+- *He optimized the database queries, making them more efficient for large datasets.* (2)
 
 ### Back:
-  1. Giải thích bằng tiếng Anh (theo Cambridge Dictionary):  <br/>
-    - From one side of something to the other side.  <br/>
-    - Continuing in time toward the end of a period.  <br/>
 
-  2. **Ví dụ:**  <br/>
-    - The train travels through several countries on its route.  <br/>
-    - /ðə treɪn ˈtrævəlz θruː ˈsɛvrəl ˈkʌntriz ɒn ɪts ruːt/  <br/>
-    - Tàu hỏa đi qua nhiều quốc gia trên lộ trình của nó.  <br/>
+1. **Example:**
+    - He optimized the database queries, making them more efficient for large datasets. <br/>
+    - Anh ấy đã tối ưu hóa các truy vấn cơ sở dữ liệu, làm cho chúng hiệu quả hơn với tập dữ liệu lớn. <br/>
+    - /hiː ˈɒp.tɪ.maɪzd ðə ˈdeɪtəbeɪs ˈkwɪəriːz/ <br/>
 
-  3. **Từ đồng nghĩa:**  <br/>
-    - Danh từ (Noun): Passage, corridor  <br/>
-    - Trạng từ (Adverb): Across, throughout  <br/>
+2. **Synonyms:**
+    - Tối ưu hóa <br/>
+    - Improve, enhance, streamline <br/>
 
-  4. **Nghĩa bằng tiếng Việt:**  <br/>
-    - Giới từ (Preposition): Qua, xuyên qua.  <br/>
-    - Trạng từ (Adverb): Liên tục.  <br/>
-
-  5. **Ghi chú:**  <br/>
-    - "Through" có thể được sử dụng để chỉ hành động di chuyển từ một bên của một vật thể, khu vực, hoặc thời gian đến bên kia. Nó cũng có thể diễn tả việc hoàn thành một khoảng thời gian hoặc giai đoạn. Từ này thường được dùng trong các ngữ cảnh liên quan đến chuyển động, hành trình, hoặc thời gian.
+3. **Notes:**
+    - According to the Cambridge dictionary, "optimize" means to make a system, design, or process as effective or functional as possible. <br/>
+    - In programming, optimization refers to improving code or databases to reduce processing time or save resources.
 `
 
-const VOCAB_ENGLISH_ASSISTANT_4 = `
+const contagious = `
 ### Front:
 ##### Từ: **Contagious (adj)** (/kənˈteɪdʒəs/)
-
-  - If someone says, "The flu is contagious," they mean that the flu can be spread from one person to another.  <br/>
+  - *Her smile was so contagious that everyone around her started to smile too*, meaning that her happiness spread quickly to others like a "virus" of good feelings.
 
 ### Audio:
-  - If someone says, "The flu is contagious," they mean that the flu can be spread from one person to another.  <br/>
-  - Her laughter was contagious, and soon everyone was smiling.  <br/>
+  - This flu is highly contagious, so be sure to stay home if you're feeling sick  <br/>
 
 ### Back:
-  1. **Giải thích bằng tiếng Anh (theo Cambridge Dictionary):**  <br/>
-    - A disease that can be spread by people to other people.  <br/>
+  1. **Example**  <br/>
+    - This flu is highly contagious, so be sure to stay home if you're feeling sick  <br/>
+    - Cúm này lây lan rất nhanh, vì vậy hãy ở nhà nếu bạn cảm thấy không khỏe.  <br/>
 
-  2. **Ví dụ:**  <br/>
-    - Her laughter was contagious, and soon everyone was smiling.  <br/>
-    - /hɜːr ˈlæftər wəz kənˈteɪdʒəs, ənd suːn ˈɛvriwʌn wəz ˈsmaɪlɪŋ/  <br/>
-    - Nụ cười của cô ấy thật dễ lây lan, và chẳng mấy chốc mọi người đều mỉm cười.  <br/>
-
-  3. **Từ đồng nghĩa:**  <br/>
-    - Infectious, transmittable, catchy  <br/>
-
-  4. **Nghĩa bằng tiếng Việt:**  <br/>
+  2. **Synonyms:**  <br/>
     - Lây lan, dễ lây.  <br/>
+    <br />
+    Synonyms: infectious, transmittable.
 
-  5. **Ghi chú:**  <br/>
-    - "Contagious" thường được dùng để chỉ các bệnh có thể truyền từ người này sang người khác. Tuy nhiên, từ này cũng có thể được sử dụng để mô tả những cảm xúc hoặc hành động lôi cuốn, như sự hài hước hay niềm vui, mà có thể ảnh hưởng đến người khác một cách tích cực.
+  3. **Ghi chú:**  <br/>
+    - A contagious disease can be spread from one person to another by touch or through the air  <br/>
+    <br />
+    - "Contagious" không chỉ dùng để nói về bệnh tật, mà còn có thể dùng khi một cảm xúc hoặc hành động lan truyền nhanh chóng từ người này sang người khác, như trong ví dụ về "nụ cười"
 `
 
 export const messages: any = [
   {
     role: 'system',
-    content: VOCAB_ENGLISH_SYS
+    content: system
   },
   {
     role: 'user',
-    content: 'figure',
+    content: 'optimize',
   },
   {
     role: 'assistant',
-    content: VOCAB_ENGLISH_ASSISTANT_2
+    content: optmimize
   },
   {
     role: 'user',
-    content: 'figure',
+    content: 'Contagious',
   },
   {
     role: 'assistant',
-    content: VOCAB_ENGLISH_ASSISTANT_2
-  },
-  {
-    role: 'user',
-    content: 'through',
-  },
-  {
-    role: 'assistant',
-    content: VOCAB_ENGLISH_ASSISTANT_3
-  },
-  {
-    role: 'user',
-    content: 'contagious',
-  },
-  {
-    role: 'assistant',
-    content: VOCAB_ENGLISH_ASSISTANT_4
+    content: contagious
   },
 ]
