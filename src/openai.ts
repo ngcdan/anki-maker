@@ -3,7 +3,7 @@ import { messages } from "./vocab_prompt";
 export interface Note {
   modelName: string;
   deckName: string;
-  fields: { Front: string, Back: string, Question: string, Ans: string, Audio?: string[] };
+  fields: { Front: string, Back: string, Question: string, Ans: string, Audio?: string };
   tags: string[];
   key: string;
   trashed?: boolean;
@@ -18,31 +18,61 @@ interface Options {
 }
 
 
-function extractSections(markdown: string) {
-  const sections: { front: string; audio: string[]; back: string } = {
+function extractSections(markdown: string, prompt: string) {
+  const sections: {
+    front: string;
+    audio: string;
+    ans: string;
+    back: string
+  } = {
     front: '',
-    audio: [],
+    ans: '',
+    audio: '',
     back: ''
   };
 
-  const frontMatch = markdown.match(/### Front:\n([\s\S]*?)(?=\n###|$)/);
-  const audioMatch = markdown.match(/### Audio:\n([\s\S]*?)(?=\n###|$)/);
-  const backMatch = markdown.match(/### Back:\n([\s\S]*?)(?=\n###|$)/);
-
-  if (frontMatch) sections.front = frontMatch[1].trim();
-  if (audioMatch) {
-    const audioContent = audioMatch[1].trim();
-    sections.audio = audioContent
-      .split(/<br\s*\/?>/)
-      .map(item => item
-        .replace(/^\s*-\s*/, '')
-        .replace(/["\\]/g, '')
-        .trim()
-      )
-      .filter(item => item.length > 0);
+  // Extract Front section (từ đầu đến Meaning)
+  const frontMatch = markdown.match(/\*\*Word:\*\*.*?(?=\n---)/s);
+  if (frontMatch) {
+    sections.front = frontMatch[0].trim();
   }
 
-  if (backMatch) sections.back = backMatch[1].trim();
+  // Extract Audio section (các câu hội thoại)
+  const conversationMatch = markdown.match(/\*\*Conversation:\*\*\n(.*?)(?=\n\*\*Meaning:\*\*)/s);
+  if (conversationMatch) {
+    const conversationText = conversationMatch[1];
+
+    let answer = '';
+
+    // Process audio lines
+    sections.audio = conversationText
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line.startsWith('- '))
+      .map(line => {
+        // Remove speaker name and colon (e.g., "Jake: ")
+        const processedLine = line.substring(line.indexOf(':') + 1)
+          .trim()
+
+        // Extract answer if line contains keyword
+        if (processedLine.toLowerCase().includes(prompt)) {
+          answer = processedLine;
+        }
+
+        // Add SSML break tag at the end
+        return processedLine + ' <break time="0.4s"/>';
+      })
+      .join('\n');
+
+    sections.ans = answer;
+
+  }
+
+  // Extract Back section (phần Analysis trở đi)
+  const backMatch = markdown.match(/\*\*Analysis\*\*[\s\S]*$/);
+  if (backMatch) {
+    sections.back = backMatch[0].trim();
+  }
 
   return sections;
 }
@@ -79,49 +109,28 @@ export async function suggestAnkiNotes(
   }
 
   const noteContent = data.choices[0].message.content;
-
-  const sections = extractSections(noteContent);
+  const sections = extractSections(noteContent, prompt);
   if (sections.audio.length === 0) {
     throw new Error('Audio list is empty! No audio available.');
   }
-  const lastAudio = sections.audio[sections.audio.length - 1].toLocaleLowerCase();
 
-  const question = `{{c1::${lastAudio}}}`;
+  const answer: string = sections.ans;
+  const hiddenAnswerAtFront: string = sections.front.replace(answer, '[...]');
 
-  const promptRegex = new RegExp(prompt, 'gi');
+  console.log(sections);
 
-  let updatedFront = sections.front.replace(promptRegex, '[...]') || ''
-  let updatedBack = sections.back || ''
-
-  return [
-    {
-      key: crypto.randomUUID(),
-      deckName,
-      modelName,
-      fields: {
-        Front: updatedFront,
-        Question: question,
-        Ans: lastAudio,
-        Back: updatedBack,
-        Audio: [lastAudio],
-      },
-      tags
-    }
-  ];
-}
-
-export async function generateAudioNote(text: string) {
-  const res: any = await fetch('http://localhost:3000/dev/chatbot/tts/api', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', },
-    body: JSON.stringify({
-      text: text, download: true,
-      dir: `/Users/linuss/Dev/resources/anki`
-    }),
-  });
-
-  if (!res.ok) throw new Error('OpenAI API TTS request failed');
-  const result = await res.json();
-  return result;
+  return [{
+    key: crypto.randomUUID(),
+    deckName,
+    modelName,
+    fields: {
+      Front: hiddenAnswerAtFront,
+      Question: `{{c1::${sections.ans}}}`,
+      Ans: sections.ans,
+      Back: sections.back,
+      Audio: sections.audio,
+    },
+    tags
+  }];
 }
 

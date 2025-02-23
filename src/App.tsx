@@ -17,7 +17,7 @@ import useLocalStorage from './useLocalStorage';
 interface Note {
   modelName: string;
   deckName: string;
-  fields: { Front: string, Back: string, Question: string, Ans: string, Audio?: string[] };
+  fields: { Front: string, Back: string, Question: string, Ans: string, Audio?: string };
   tags: string[];
   key: string;
   trashed?: boolean;
@@ -64,7 +64,7 @@ const NoteComponent: React.FC<CardProps> = ({ note, onTrash, onCreate }) => {
 
   const onAddNote = async () => {
     try {
-      let audioTexts: any = currentNote.fields.Audio || []
+      let audioTexts: any = currentNote.fields.Audio || ''
       let fields = currentNote.fields
       let updateFields = {
         ...fields,
@@ -73,12 +73,12 @@ const NoteComponent: React.FC<CardProps> = ({ note, onTrash, onCreate }) => {
       }
 
       let migrateNote: any = { ...currentNote, fields: updateFields }
-      if (audioTexts.length > 0) {
+      if (audioTexts) {
         const response: any = await fetch('http://localhost:3000/dev/chatbot/tts/api', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', },
           body: JSON.stringify({
-            text: audioTexts[0], download: true,
+            text: audioTexts, download: true,
             dir: `/Users/linuss/Dev/resources/anki`
           }),
         });
