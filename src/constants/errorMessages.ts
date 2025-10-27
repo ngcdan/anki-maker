@@ -9,6 +9,8 @@ export const ERROR_MESSAGES = {
   AUDIO_GENERATION: 'Lỗi tạo audio. Danh sách audio trống.',
   INVALID_RESPONSE: 'Phản hồi không hợp lệ từ server.',
   PARSING_ERROR: 'Lỗi phân tích dữ liệu.',
+  AI_GENERATION_FAILED: 'Lỗi tạo ghi chú với AI. Vui lòng thử lại.',
+  CARD_CREATION_FAILED: 'Lỗi tạo thẻ trong Anki. Vui lòng thử lại.',
   UNKNOWN: 'Đã xảy ra lỗi không xác định.',
 } as const;
 
@@ -16,4 +18,6 @@ export const SUCCESS_MESSAGES = {
   NOTE_CREATED: 'Đã tạo thẻ thành công!',
   NOTE_TRASHED: 'Đã bỏ thẻ vào thùng rác.',
   SETTINGS_SAVED: 'Đã lưu cài đặt.',
+  NOTES_GENERATED: 'Đã tạo ghi chú thành công!',
+  CARD_CREATED: 'Đã tạo thẻ thành công!',
 } as const;
