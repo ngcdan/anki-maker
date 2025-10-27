@@ -16,6 +16,7 @@ import AppModern from './AppModern';
 import AppSimple from './AppSimple';
 import App from './App';
 import TestAnkiFormat from './TestAnkiFormat';
+import CompareNotecards from './CompareNotecards';
 
 function Navigation() {
   const { mode, toggleMode } = useAppTheme();
@@ -124,6 +125,10 @@ const router = createBrowserRouter([
       {
         path: "test",
         element: <TestAnkiFormat />,
+      },
+      {
+        path: "compare",
+        element: <CompareNotecards />,
       },
     ],
   },
