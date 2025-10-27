@@ -21,8 +21,9 @@ import {
 import { useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 
-import { DeckSelector, TagSelector, FormSkeleton, NoteCard, NoteCardSkeleton } from './components';
+import { DeckSelector, TagSelector, FormSkeleton, NoteCardSkeleton } from './components';
 import { AdvancedPromptInput } from './components/AdvancedPromptInput';
+import EnhancedNoteCardV2 from './components/EnhancedNoteCardV2';
 import EnhancedFeedback, { useFeedback } from './components/EnhancedFeedback';
 
 // Import original functions
@@ -452,7 +453,7 @@ function App() {
             ) : (
               <Grid container spacing={2} alignItems="stretch">
                 {pendingNotes.filter(note => !note.trashed).map((note) => (
-                  <NoteCard
+                  <EnhancedNoteCardV2
                     key={note.key}
                     note={note}
                     onCreate={() => handleCreateCard(note)}
