@@ -38,13 +38,13 @@ import { useAddNote, useTags, useTTS } from '../hooks';
 import { OpenAIKeyContext } from '../OpenAIKeyContext';
 import { useAppTheme, gradients } from '../theme';
 
-interface EnhancedNoteCardProps {
+interface NoteCardModernProps {
   note: Note;
   onTrash: () => void;
   onCreate: () => void;
 }
 
-const EnhancedNoteCard: React.FC<EnhancedNoteCardProps> = memo(({ note, onTrash, onCreate }) => {
+const NoteCardModern: React.FC<NoteCardModernProps> = memo(({ note, onTrash, onCreate }) => {
   const theme = useTheme();
   const { mode } = useAppTheme();
   const [currentNote, setCurrentNote] = useState(note);
@@ -612,6 +612,6 @@ const EnhancedNoteCard: React.FC<EnhancedNoteCardProps> = memo(({ note, onTrash,
   );
 });
 
-EnhancedNoteCard.displayName = 'EnhancedNoteCard';
+NoteCardModern.displayName = 'NoteCardModern';
 
-export default EnhancedNoteCard;
+export default NoteCardModern;

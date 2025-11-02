@@ -21,22 +21,23 @@ import {
 import { useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 
-import { DeckSelector, TagSelector, FormSkeleton, NoteCardSkeleton } from './components';
-import { AdvancedPromptInput } from './components/AdvancedPromptInput';
-import EnhancedNoteCardV2 from './components/EnhancedNoteCardV2';
-import EnhancedFeedback, { useFeedback } from './components/EnhancedFeedback';
+import { DeckSelector, TagSelector } from '../../components/forms';
+import { FormSkeleton, NoteCardSkeleton } from '../../components';
+import { AdvancedPromptInput } from '../../components/forms/AdvancedPromptInput';
+import NoteCardModern from '../../components/ui/NoteCardModern';
+import FeedbackSystem, { useFeedback } from '../../components/ui/FeedbackSystem';
 
 // Import original functions
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { fetchDecks, fetchTags, addNote } from './anki';
-import { suggestAnkiNotes } from './openai';
-import { OpenAIKeyContext } from './OpenAIKeyContext';
+import { fetchDecks, fetchTags, addNote } from '../../anki';
+import { suggestAnkiNotes } from '../../openai';
+import { OpenAIKeyContext } from '../../OpenAIKeyContext';
 import { useContext } from 'react';
 
-import { DEFAULT_SETTINGS } from './constants';
-import { useAppTheme, gradients } from './theme';
-import useLocalStorage from './useLocalStorage';
-import { Note } from './types';
+import { DEFAULT_SETTINGS } from '../../constants';
+import { useAppTheme, gradients } from '../../theme';
+import useLocalStorage from '../../useLocalStorage';
+import { Note } from '../../types';
 
 function StatsCard({ title, value, icon, color = 'primary' }: {
   title: string;
@@ -387,17 +388,13 @@ function App() {
                   value={deckName}
                   onChange={setDeckName}
                   decks={decks}
-                  disabled={!isConnected}
                 />
 
                 <TagSelector
-                  value={currentTags}
+                  value={tags}
                   onChange={setCurrentTags}
                   options={tags}
-                  disabled={!isConnected}
-                />
-
-                <Divider />
+                />                <Divider />
 
                 <AdvancedPromptInput
                   value={prompt}
@@ -453,7 +450,7 @@ function App() {
             ) : (
               <Grid container spacing={2} alignItems="stretch">
                 {pendingNotes.filter(note => !note.trashed).map((note) => (
-                  <EnhancedNoteCardV2
+                  <NoteCardModern
                     key={note.key}
                     note={note}
                     onCreate={() => handleCreateCard(note)}
@@ -467,7 +464,7 @@ function App() {
       </Grid>
 
       {/* Enhanced Feedback System */}
-      <EnhancedFeedback
+      <FeedbackSystem
         messages={feedback.messages}
         onDismiss={feedback.dismissMessage}
         position="top-right"

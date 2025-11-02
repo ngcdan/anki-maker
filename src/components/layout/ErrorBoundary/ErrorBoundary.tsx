@@ -1,6 +1,6 @@
 import React, { Component, ReactNode } from 'react';
 import { Alert, Button, Typography, Box } from '@mui/material';
-import { ERROR_MESSAGES } from '../../constants';
+import { ERROR_MESSAGES } from '../../../constants';
 
 interface Props {
   children: ReactNode;

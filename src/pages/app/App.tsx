@@ -1,15 +1,15 @@
 import {
-  Alert, Button, CircularProgress, Grid
+  Alert, Button, CircularProgress, Grid, Link as MuiLink, Box
 } from '@mui/material';
 
-import { useLocation } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 
-import { NoteCard, DeckSelector, TagSelector, PromptInput, NoteCardSkeleton, FormSkeleton } from './components';
-import { useAnkiConnection, useOpenAI, useNoteManagement, useOpenAIKey, useErrorHandler } from './hooks';
-import { ERROR_MESSAGES, DEFAULT_SETTINGS, SUCCESS_MESSAGES } from './constants';
-import { SuggestOptions } from './types';
-import useLocalStorage from './useLocalStorage';
+import { NoteCard, DeckSelector, TagSelector, PromptInput, NoteCardSkeleton, FormSkeleton, SettingsFab } from '../../components';
+import { useAnkiConnection, useOpenAI, useNoteManagement, useOpenAIKey, useErrorHandler } from '../../hooks';
+import { ERROR_MESSAGES, DEFAULT_SETTINGS, SUCCESS_MESSAGES } from '../../constants';
+import { SuggestOptions } from '../../types';
+import useLocalStorage from '../../useLocalStorage';
 
 function App() {
   const location = useLocation();
@@ -88,7 +88,13 @@ function App() {
 
       {!hasValidKey && (
         <Alert severity="warning" sx={{ marginTop: '20px', marginLeft: '25px' }}>
-          {ERROR_MESSAGES.OPENAI_KEY_MISSING}
+          <Box>
+            {ERROR_MESSAGES.OPENAI_KEY_MISSING}
+            <br />
+            <MuiLink component={Link} to="/settings" sx={{ fontWeight: 'bold', textDecoration: 'underline' }}>
+              Nhấn vào đây để cấu hình OpenAI API key
+            </MuiLink>
+          </Box>
         </Alert>
       )}
 
@@ -164,6 +170,9 @@ function App() {
             />
           ))}
       </Grid>
+
+      {/* Settings FAB - only show when OpenAI key is missing */}
+      <SettingsFab show={!hasValidKey} />
     </Grid>
   );
 }

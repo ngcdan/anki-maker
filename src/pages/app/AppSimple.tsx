@@ -6,14 +6,14 @@ import { useLocation } from 'react-router-dom';
 import { useState, useEffect, useContext } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 
-import { NoteCard, DeckSelector, TagSelector, PromptInput, NoteCardSkeleton, FormSkeleton } from './components';
-import { fetchDecks, fetchTags, addNote } from './anki';
-import { suggestAnkiNotes } from './openai';
-import { OpenAIKeyContext } from './OpenAIKeyContext';
-import { ERROR_MESSAGES, DEFAULT_SETTINGS } from './constants';
-import { Note } from './types';
-import useLocalStorage from './useLocalStorage';
-import EnhancedFeedback, { useFeedback } from './components/EnhancedFeedback';
+import { NoteCard, DeckSelector, TagSelector, PromptInput, NoteCardSkeleton, FormSkeleton } from '../../components';
+import { fetchDecks, fetchTags, addNote } from '../../anki';
+import { suggestAnkiNotes } from '../../openai';
+import { OpenAIKeyContext } from '../../OpenAIKeyContext';
+import { ERROR_MESSAGES, DEFAULT_SETTINGS } from '../../constants';
+import { Note } from '../../types';
+import useLocalStorage from '../../useLocalStorage';
+import FeedbackSystem, { useFeedback } from '../../components/ui/FeedbackSystem';
 
 // Note management hook simplified
 const useSimpleNoteManagement = () => {
@@ -284,7 +284,7 @@ function AppSimple() {
         </Grid>
 
         {/* Enhanced Feedback System */}
-        <EnhancedFeedback
+        <FeedbackSystem
           messages={feedback.messages}
           onDismiss={feedback.dismissMessage}
           position="top-right"

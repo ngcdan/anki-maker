@@ -1,4 +1,4 @@
-import { useToast } from '../components/ToastProvider';
+import { useToast } from '../components/layout/ToastProvider';
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '../constants';
 
 export interface UseErrorHandlerReturn {

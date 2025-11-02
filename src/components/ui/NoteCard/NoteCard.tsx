@@ -11,9 +11,9 @@ import {
 } from '@mui/material';
 import { marked } from 'marked';
 
-import { Note } from '../../types';
-import { useAddNote, useTags, useTTS } from '../../hooks';
-import { OpenAIKeyContext } from '../../OpenAIKeyContext';
+import { Note } from '../../../types';
+import { useAddNote, useTags, useTTS } from '../../../hooks';
+import { OpenAIKeyContext } from '../../../OpenAIKeyContext';
 
 interface NoteCardProps {
   note: Note;

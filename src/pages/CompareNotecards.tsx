@@ -9,9 +9,9 @@ import {
   Paper,
   Divider,
 } from '@mui/material';
-import { Note } from './types';
-import { NoteCard } from './components/NoteCard/NoteCard';
-import EnhancedNoteCardV2 from './components/EnhancedNoteCardV2';
+import { Note } from '../types';
+import { NoteCard } from '../components/ui/NoteCard/NoteCard';
+import NoteCardModern from '../components/ui/NoteCardModern';
 
 // Sample notes for testing
 const sampleNotes: Note[] = [
@@ -142,7 +142,7 @@ export default function CompareNotecards() {
 
         <Grid container spacing={3}>
           {sampleNotes.map((note) => (
-            <EnhancedNoteCardV2
+            <NoteCardModern
               key={note.key}
               note={note}
               onCreate={mockHandlers.onCreate}
@@ -183,7 +183,7 @@ export default function CompareNotecards() {
               <Divider sx={{ mb: 3 }} />
 
               <Grid container spacing={2}>
-                <EnhancedNoteCardV2
+                <NoteCardModern
                   note={sampleNotes[0]}
                   onCreate={mockHandlers.onCreate}
                   onTrash={mockHandlers.onTrash}

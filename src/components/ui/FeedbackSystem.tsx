@@ -46,14 +46,14 @@ export interface FeedbackMessage {
   persistent?: boolean;
 }
 
-interface EnhancedFeedbackProps {
+interface FeedbackSystemProps {
   messages: FeedbackMessage[];
   onDismiss: (id: string) => void;
-  position?: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left' | 'top-center' | 'bottom-center';
+  position?: 'top-right' | 'top-left' | 'top-center' | 'bottom-right' | 'bottom-left' | 'bottom-center';
   maxVisible?: number;
 }
 
-const EnhancedFeedback = memo<EnhancedFeedbackProps>(({
+const FeedbackSystem = memo<FeedbackSystemProps>(({
   messages,
   onDismiss,
   position = 'top-right',
@@ -229,7 +229,7 @@ const EnhancedFeedback = memo<EnhancedFeedbackProps>(({
   );
 });
 
-EnhancedFeedback.displayName = 'EnhancedFeedback';
+FeedbackSystem.displayName = 'FeedbackSystem';
 
 // Hook for managing feedback messages
 export const useFeedback = () => {
@@ -246,7 +246,7 @@ export const useFeedback = () => {
     setMessages(prev => [newMessage, ...prev]);
 
     // Auto-dismiss if not persistent
-    if (!newMessage.persistent && newMessage.duration > 0) {
+    if (!newMessage.persistent && newMessage.duration && newMessage.duration > 0) {
       setTimeout(() => {
         dismissMessage(id);
       }, newMessage.duration);
@@ -285,4 +285,4 @@ export const useFeedback = () => {
   };
 };
 
-export default EnhancedFeedback;
+export default FeedbackSystem;

@@ -1,6 +1,6 @@
 import React from 'react';
 import { FormControl, TextField } from '@mui/material';
-import { FormComponentProps } from '../../types';
+import { FormComponentProps } from '../../../types';
 
 interface PromptInputProps extends FormComponentProps {
   value: string;

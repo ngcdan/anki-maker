@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Box, Button, Typography, Paper, Divider } from '@mui/material';
-import { suggestAnkiNotes } from './openai';
-import { addNote } from './anki';
+import { suggestAnkiNotes } from '../openai';
+import { addNote } from '../anki';
 
 export default function TestAnkiFormat() {
   const [result, setResult] = useState<any>(null);

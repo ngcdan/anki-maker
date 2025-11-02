@@ -3,7 +3,7 @@ import { setupServer } from 'msw/node'
 import { rest } from 'msw'
 import { afterAll, beforeAll, expect, it } from "vitest"
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import App from './App';
+import App from './pages/app/App';
 
 const server = setupServer(
   rest.post('http://localhost:8765', async (req, res, ctx) => { // setup a mock server
