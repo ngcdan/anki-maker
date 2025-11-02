@@ -7,7 +7,7 @@ import { useState, useEffect, useContext } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 
 import { NoteCard, DeckSelector, TagSelector, PromptInput, NoteCardSkeleton, FormSkeleton } from '../../components';
-import { fetchDecks, fetchTags, addNote } from '../../anki';
+import { fetchDecks, addNote } from '../../anki';
 import { suggestAnkiNotes } from '../../openai';
 import { OpenAIKeyContext } from '../../OpenAIKeyContext';
 import { ERROR_MESSAGES, DEFAULT_SETTINGS } from '../../constants';
@@ -78,18 +78,10 @@ function AppSimple() {
     staleTime: 5 * 60 * 1000,
   });
 
-  const { data: tags = [], isLoading: tagsLoading, error: tagsError } = useQuery({
-    queryKey: ['tags'],
-    queryFn: fetchTags,
-    staleTime: 5 * 60 * 1000,
-  });
-
   // Anki connection status
-  const isConnected = !decksError && !tagsError;
-  const ankiLoading = decksLoading || tagsLoading;
-  const ankiError = decksError || tagsError;
-
-  const modelName = DEFAULT_SETTINGS.modelName;
+  const isConnected = !decksError;
+  const ankiLoading = decksLoading;
+  const ankiError = decksError; const modelName = DEFAULT_SETTINGS.modelName;
 
   // AI Generation mutation
   const suggestNotesMutation = useMutation({
@@ -236,11 +228,8 @@ function AppSimple() {
               <TagSelector
                 value={currentTags}
                 onChange={setCurrentTags}
-                options={tags}
                 disabled={!isConnected}
-              />
-
-              <PromptInput
+              />              <PromptInput
                 value={prompt}
                 onChange={setPrompt}
                 disabled={!hasValidKey || !isConnected || aiLoading}

@@ -1,4 +1,4 @@
-import React, { useState, useContext, memo, useMemo, useCallback } from 'react';
+import React, { useState, useContext, memo, useMemo, useCallback, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -6,7 +6,6 @@ import {
   Grid,
   TextField,
   Button,
-  Autocomplete,
   CircularProgress,
   Typography,
   Box,
@@ -36,7 +35,7 @@ import {
 import { marked } from 'marked';
 
 import { Note } from '../../types';
-import { useAddNote, useTags, useTTS } from '../../hooks';
+import { useAddNote, useTTS } from '../../hooks';
 import { OpenAIKeyContext } from '../../OpenAIKeyContext';
 import { useAppTheme, gradients } from '../../theme';
 
@@ -64,11 +63,16 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
 
   // Original NoteCard hooks
   const { mutate: addNote, isLoading } = useAddNote();
-  const { data: allTags } = useTags();
+  // Không cần fetch allTags nữa vì không hiển thị gợi ý
   const { openAIKey } = useContext(OpenAIKeyContext);
   const { generateAudio, createAnkiAudioFile, isGenerating } = useTTS();
 
-  const { modelName, deckName, fields, tags, trashed, created } = currentNote;
+  const { modelName, deckName, fields, trashed, created } = currentNote;
+
+  // Sync currentNote with note prop changes
+  useEffect(() => {
+    setCurrentNote(note);
+  }, [note]);
 
   // Memoize computed values
   const cardStatus = useMemo(() => {
@@ -99,6 +103,11 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
     return created || trashed || isLoading;
   }, [created, trashed, isLoading]);
 
+  // Chỉ disable khi đang loading, cho phép edit trong mọi trạng thái khác
+  const isFieldDisabled = useMemo(() => {
+    return isLoading || isGenerating;
+  }, [isLoading, isGenerating]);
+
   // Original NoteCard handlers
   const handleFieldChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.name) {
@@ -109,12 +118,7 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
     }
   };
 
-  const handleTagsChange = (_: any, newTags: string[]) => {
-    setCurrentNote(prev => ({
-      ...prev,
-      tags: newTags,
-    }));
-  };
+
 
   const handleAddNote = async () => {
     try {
@@ -358,20 +362,7 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
                 />
               </Grid>
 
-              <Grid item xs={12}>
-                <Autocomplete
-                  id="tags"
-                  multiple
-                  autoHighlight
-                  freeSolo
-                  size="small"
-                  value={tags}
-                  options={allTags || []}
-                  onChange={handleTagsChange}
-                  disabled={isDisabled}
-                  renderInput={(params) => <TextField label="Tags" {...params} />}
-                />
-              </Grid>
+
 
               {/* Compact view by default, expanded when clicked */}
               <Grid item xs={12}>
@@ -383,7 +374,7 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
                   rows={expanded ? 3 : 2}
                   name="Front"
                   onChange={handleFieldChange}
-                  disabled={isDisabled}
+                  disabled={isFieldDisabled}
                   size="small"
                   InputProps={{
                     endAdornment: (
@@ -425,7 +416,7 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
                     rows={expanded ? 3 : 2}
                     name="Question"
                     onChange={handleFieldChange}
-                    disabled={isDisabled}
+                    disabled={isFieldDisabled}
                     size="small"
                     InputProps={{
                       endAdornment: (
@@ -466,7 +457,7 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
                     rows={expanded ? 3 : 2}
                     name="Ans"
                     onChange={handleFieldChange}
-                    disabled={isDisabled}
+                    disabled={isFieldDisabled}
                     size="small"
                     InputProps={{
                       endAdornment: (
@@ -506,7 +497,7 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
                   rows={expanded ? 3 : 2}
                   name="Back"
                   onChange={handleFieldChange}
-                  disabled={isDisabled}
+                  disabled={isFieldDisabled}
                   size="small"
                   InputProps={{
                     endAdornment: (
@@ -548,7 +539,7 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
                     rows={expanded ? 2 : 1}
                     name="Audio"
                     onChange={handleFieldChange}
-                    disabled={isDisabled}
+                    disabled={isFieldDisabled}
                     size="small"
                     InputProps={{
                       endAdornment: (

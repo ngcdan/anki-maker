@@ -22,7 +22,7 @@ function App() {
   const [currentTags, setCurrentTags] = useLocalStorage<string[]>('tags', DEFAULT_SETTINGS.tags);
 
   // Hooks
-  const { isConnected, isLoading: ankiLoading, hasError: ankiError, decks, tags } = useAnkiConnection();
+  const { isConnected, isLoading: ankiLoading, hasError: ankiError, decks } = useAnkiConnection();
   const { hasValidKey } = useOpenAIKey();
   const { suggestNotes, isLoading: aiLoading, error: aiError } = useOpenAI();
   const { pendingNotes, actions } = useNoteManagement();
@@ -118,7 +118,6 @@ function App() {
               <TagSelector
                 value={currentTags}
                 onChange={setCurrentTags}
-                options={tags}
                 isLoading={ankiLoading}
                 disabled={!isConnected}
               />

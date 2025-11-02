@@ -78,7 +78,7 @@ function extractSections(markdown: string, prompt: string) {
 }
 
 export async function suggestAnkiNotes(
-  openAIKey: string, { deckName, modelName, tags, prompt }: Options, _notes: Note[]): Promise<any> {
+  openAIKey: string, { deckName, modelName, prompt }: Options, _notes: Note[]): Promise<any> {
   console.log('-------------- suggestAnkiNotes ----------------');
 
   const body = {
@@ -130,7 +130,7 @@ export async function suggestAnkiNotes(
       Back: sections.back,
       Audio: sections.audio,
     },
-    tags
+    tags: [] // Luôn trả về empty tags
   }];
 }
 

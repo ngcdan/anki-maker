@@ -5,14 +5,12 @@ import { FormComponentProps } from '../../../types';
 interface TagSelectorProps extends FormComponentProps {
   value: string[];
   onChange: (value: string[]) => void;
-  options: string[];
   isLoading?: boolean;
 }
 
 export const TagSelector: React.FC<TagSelectorProps> = ({
   value,
   onChange,
-  options,
   isLoading = false,
   disabled = false,
   error,
@@ -29,15 +27,15 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
       <Autocomplete
         id="tags"
         multiple
-        autoHighlight
         freeSolo
         value={value}
-        options={options}
+        options={[]} // Không hiển thị gợi ý, chỉ cho phép thêm tags mới
         onChange={handleChange}
         renderInput={(params) => (
           <TextField
             {...params}
             label="Tags"
+            placeholder="Thêm tags..."
             error={!!error}
             helperText={helperText}
           />

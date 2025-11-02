@@ -23,7 +23,7 @@ import {
 import { useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 
-import { DeckSelector, TagSelector } from '../../components/forms';
+import { DeckSelector, TagSelector, ApiKeyManager } from '../../components/forms';
 import { FormSkeleton, NoteCardSkeleton } from '../../components';
 import { AdvancedPromptInput } from '../../components/forms/AdvancedPromptInput';
 import NoteCardModern from '../../components/ui/NoteCardModern';
@@ -31,7 +31,7 @@ import FeedbackSystem, { useFeedback } from '../../components/ui/FeedbackSystem'
 
 // Import original functions
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { fetchDecks, fetchTags, addNote } from '../../anki';
+import { fetchDecks, addNote } from '../../anki';
 import { suggestAnkiNotes } from '../../openai';
 import { OpenAIKeyContext } from '../../OpenAIKeyContext';
 import { useContext } from 'react';
@@ -130,7 +130,7 @@ function App() {
   // Local state
   const [prompt, setPrompt] = useState(promptParam);
   const [deckName, setDeckName] = useLocalStorage<string>('deckName', DEFAULT_SETTINGS.deckName);
-  const [currentTags, setCurrentTags] = useLocalStorage<string[]>('tags', DEFAULT_SETTINGS.tags);
+  const [currentTags, setCurrentTags] = useLocalStorage<string[]>('tags', []);
   const [pendingNotes, setPendingNotes] = useState<Note[]>([]);
 
   // OpenAI Key context
@@ -147,16 +147,10 @@ function App() {
     staleTime: 5 * 60 * 1000,
   });
 
-  const { data: tags = [], isLoading: tagsLoading, error: tagsError } = useQuery({
-    queryKey: ['tags'],
-    queryFn: fetchTags,
-    staleTime: 5 * 60 * 1000,
-  });
-
   // Anki connection status
-  const isConnected = !decksError && !tagsError;
-  const ankiLoading = decksLoading || tagsLoading;
-  const ankiError = decksError || tagsError;
+  const isConnected = !decksError;
+  const ankiLoading = decksLoading;
+  const ankiError = decksError;
 
   const modelName = DEFAULT_SETTINGS.modelName;
 
@@ -292,7 +286,6 @@ function App() {
     feedback.info('Đã xóa tất cả thẻ');
   };
 
-  const isFormReady = hasValidKey && isConnected && !ankiLoading;
   const showProgress = generateNotesMutation.isLoading;
 
   return (
@@ -322,7 +315,22 @@ function App() {
               </Typography>
             </Box>
           </Box>
-          <StatusIndicator isConnected={isConnected} hasValidKey={hasValidKey} />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <StatusIndicator isConnected={isConnected} hasValidKey={hasValidKey} />
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<Settings />}
+              href="/settings"
+              sx={{
+                borderRadius: 2,
+                textTransform: 'none',
+                fontWeight: 500,
+              }}
+            >
+              Settings
+            </Button>
+          </Box>
         </Box>
 
         {/* Progress Bar */}
@@ -406,6 +414,10 @@ function App() {
               <FormSkeleton />
             ) : (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <ApiKeyManager />
+
+                <Divider />
+
                 <DeckSelector
                   value={deckName}
                   onChange={setDeckName}
@@ -413,16 +425,17 @@ function App() {
                 />
 
                 <TagSelector
-                  value={tags}
+                  value={currentTags}
                   onChange={setCurrentTags}
-                  options={tags}
-                />                <Divider />
+                />
+
+                <Divider />
 
                 <AdvancedPromptInput
                   value={prompt}
                   onChange={setPrompt}
                   onSubmit={handleSuggestNotes}
-                  disabled={!isFormReady}
+                  disabled={false} // Luôn cho phép nhập prompt
                   loading={generateNotesMutation.isLoading}
                 />
               </Box>
