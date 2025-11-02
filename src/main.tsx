@@ -1,4 +1,4 @@
-import React, { Suspense, startTransition } from 'react'
+import React, { Suspense } from 'react'
 import ReactDOM from 'react-dom/client'
 import { RouterProvider, createBrowserRouter, Link } from 'react-router-dom'
 import { QueryClientProvider } from '@tanstack/react-query'

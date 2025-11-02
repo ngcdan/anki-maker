@@ -8,6 +8,7 @@ import {
   Chip,
   Alert,
   LinearProgress,
+  Button,
 } from '@mui/material';
 import {
   AutoAwesome,
@@ -16,6 +17,7 @@ import {
   TrendingUp,
   CheckCircle,
   Cancel,
+  ClearAll,
 } from '@mui/icons-material';
 
 import { useLocation } from 'react-router-dom';
@@ -190,8 +192,9 @@ function App() {
       return convertedNotes;
     },
     onSuccess: (notes) => {
-      setPendingNotes(notes);
-      feedback.success(`Đã tạo ${notes.length} thẻ học thành công!`);
+      // Thêm vào pendingNotes thay vì thay thế
+      setPendingNotes(prev => [...prev, ...notes]);
+      feedback.success(`Đã tạo ${notes.length} thẻ học mới! Tổng cộng: ${pendingNotes.length + notes.length} thẻ`);
     },
     onError: (error) => {
       feedback.error('Có lỗi khi tạo thẻ học: ' + String(error));
@@ -263,11 +266,30 @@ function App() {
     } catch (error) {
       console.error('Error creating card:', error);
     }
-  }; const handleTrashNote = (noteKey: string) => {
+  };
+
+  const handleTrashNote = (noteKey: string) => {
     setPendingNotes(prev =>
       prev.map(n => n.key === noteKey ? { ...n, trashed: true } : n)
     );
     feedback.info('Đã xóa thẻ');
+  };
+
+  const handleRestoreNote = (noteKey: string) => {
+    setPendingNotes(prev =>
+      prev.map(n => n.key === noteKey ? { ...n, trashed: false } : n)
+    );
+    feedback.success('Đã khôi phục thẻ');
+  };
+
+  const handleDeletePermanent = (noteKey: string) => {
+    setPendingNotes(prev => prev.filter(n => n.key !== noteKey));
+    feedback.info('Đã xóa thẻ khỏi danh sách');
+  };
+
+  const handleClearAll = () => {
+    setPendingNotes([]);
+    feedback.info('Đã xóa tất cả thẻ');
   };
 
   const isFormReady = hasValidKey && isConnected && !ankiLoading;
@@ -418,9 +440,26 @@ function App() {
         {/* Right Panel - Notes */}
         <Grid item xs={12} lg={8}>
           <Box>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>
-              Ghi chú được tạo ({pendingNotes.length})
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                Ghi chú được tạo ({pendingNotes.length})
+              </Typography>
+              {pendingNotes.length > 0 && (
+                <Button
+                  variant="outlined"
+                  color="error"
+                  startIcon={<ClearAll />}
+                  onClick={handleClearAll}
+                  sx={{
+                    borderRadius: 2,
+                    textTransform: 'none',
+                    fontWeight: 500,
+                  }}
+                >
+                  Xóa tất cả
+                </Button>
+              )}
+            </Box>
 
             {generateNotesMutation.isLoading ? (
               <Grid container spacing={2} alignItems="stretch">
@@ -449,12 +488,14 @@ function App() {
               </Paper>
             ) : (
               <Grid container spacing={2} alignItems="stretch">
-                {pendingNotes.filter(note => !note.trashed).map((note) => (
+                {pendingNotes.map((note) => (
                   <NoteCardModern
                     key={note.key}
                     note={note}
                     onCreate={() => handleCreateCard(note)}
                     onTrash={() => handleTrashNote(note.key)}
+                    onRestore={() => handleRestoreNote(note.key)}
+                    onDeletePermanent={() => handleDeletePermanent(note.key)}
                   />
                 ))}
               </Grid>

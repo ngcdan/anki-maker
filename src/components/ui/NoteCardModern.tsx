@@ -30,6 +30,8 @@ import {
   Add,
   Visibility,
   VisibilityOff,
+  Restore,
+  DeleteForever,
 } from '@mui/icons-material';
 import { marked } from 'marked';
 
@@ -42,9 +44,17 @@ interface NoteCardModernProps {
   note: Note;
   onTrash: () => void;
   onCreate: () => void;
+  onRestore?: () => void;
+  onDeletePermanent?: () => void;
 }
 
-const NoteCardModern: React.FC<NoteCardModernProps> = memo(({ note, onTrash, onCreate }) => {
+const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
+  note,
+  onTrash,
+  onCreate,
+  onRestore,
+  onDeletePermanent
+}) => {
   const theme = useTheme();
   const { mode } = useAppTheme();
   const [currentNote, setCurrentNote] = useState(note);
@@ -182,11 +192,6 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({ note, onTrash, onC
     }
   }, [openAIKey, generateAudio]);
 
-  // Don't render if note is trashed or created
-  if (trashed || created) {
-    return null;
-  }
-
   return (
     <Grid item xs={12} md={6}>
       <Fade in timeout={300}>
@@ -204,11 +209,13 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({ note, onTrash, onC
               ? '0 8px 32px rgba(0, 0, 0, 0.3)'
               : '0 4px 20px rgba(0, 0, 0, 0.08)',
             transition: 'all 0.3s ease',
+            opacity: trashed ? 0.6 : 1,
+            filter: trashed ? 'grayscale(50%)' : 'none',
             '&:hover': {
-              transform: 'translateY(-2px)',
-              boxShadow: mode === 'dark'
-                ? '0 12px 40px rgba(0, 0, 0, 0.4)'
-                : '0 8px 30px rgba(0, 0, 0, 0.12)',
+              transform: trashed ? 'none' : 'translateY(-2px)',
+              boxShadow: trashed
+                ? (mode === 'dark' ? '0 8px 32px rgba(0, 0, 0, 0.3)' : '0 4px 20px rgba(0, 0, 0, 0.08)')
+                : (mode === 'dark' ? '0 12px 40px rgba(0, 0, 0, 0.4)' : '0 8px 30px rgba(0, 0, 0, 0.12)'),
             },
           }}
         >
@@ -564,47 +571,98 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({ note, onTrash, onC
           </CardContent>
 
           <CardActions sx={{ justifyContent: 'space-between', px: 2, pb: 2 }}>
-            <Button
-              size="small"
-              color="error"
-              onClick={onTrash}
-              disabled={isDisabled}
-              startIcon={<Delete />}
-              sx={{
-                borderRadius: 2,
-                textTransform: 'none',
-                fontWeight: 500,
-              }}
-            >
-              Xóa
-            </Button>
+            {trashed ? (
+              // Thẻ đã trash: hiển thị khôi phục và xóa vĩnh viễn
+              <>
+                <Button
+                  size="small"
+                  color="primary"
+                  onClick={onRestore}
+                  startIcon={<Restore />}
+                  sx={{
+                    borderRadius: 2,
+                    textTransform: 'none',
+                    fontWeight: 500,
+                  }}
+                >
+                  Khôi phục
+                </Button>
+                <Button
+                  size="small"
+                  color="error"
+                  onClick={onDeletePermanent}
+                  startIcon={<DeleteForever />}
+                  sx={{
+                    borderRadius: 2,
+                    textTransform: 'none',
+                    fontWeight: 500,
+                  }}
+                >
+                  Xóa vĩnh viễn
+                </Button>
+              </>
+            ) : created ? (
+              // Thẻ đã tạo: chỉ hiển thị xóa vĩnh viễn
+              <Button
+                size="small"
+                color="error"
+                onClick={onDeletePermanent}
+                startIcon={<DeleteForever />}
+                sx={{
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 500,
+                  ml: 'auto',
+                }}
+              >
+                Xóa khỏi danh sách
+              </Button>
+            ) : (
+              // Thẻ mới: hiển thị trash và tạo thẻ
+              <>
+                <Button
+                  size="small"
+                  color="error"
+                  onClick={onTrash}
+                  disabled={isDisabled}
+                  startIcon={<Delete />}
+                  sx={{
+                    borderRadius: 2,
+                    textTransform: 'none',
+                    fontWeight: 500,
+                  }}
+                >
+                  Xóa
+                </Button>
 
-            <Button
-              size="small"
-              variant="contained"
-              color="primary"
-              onClick={handleAddNote}
-              disabled={isDisabled}
-              startIcon={
-                (isLoading || isGenerating) ? (
-                  <CircularProgress size={16} color="inherit" />
-                ) : (
-                  <Add />
-                )
-              }
-              sx={{
-                borderRadius: 2,
-                textTransform: 'none',
-                fontWeight: 600,
-                px: 3,
-                background: !isDisabled ? gradients.primary : undefined,
-                '&:hover': {
-                  background: !isDisabled ? gradients.primary : undefined,
-                },
-              }}
-            >
-              {isGenerating ? 'Tạo audio...' : isLoading ? 'Đang thêm...' : 'Tạo thẻ'}
-            </Button>
+                <Button
+                  size="small"
+                  variant="contained"
+                  color="primary"
+                  onClick={handleAddNote}
+                  disabled={isDisabled}
+                  startIcon={
+                    (isLoading || isGenerating) ? (
+                      <CircularProgress size={16} color="inherit" />
+                    ) : (
+                      <Add />
+                    )
+                  }
+                  sx={{
+                    borderRadius: 2,
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    px: 3,
+                    background: !isDisabled ? gradients.primary : undefined,
+                    '&:hover': {
+                      background: !isDisabled ? gradients.primary : undefined,
+                    },
+                  }}
+                >
+                  {isGenerating ? 'Tạo audio...' : isLoading ? 'Đang thêm...' : 'Tạo thẻ'}
+                </Button>
+              </>
+            )}
           </CardActions>
         </Card>
       </Fade>
