@@ -12,7 +12,6 @@ import { RouterErrorBoundary } from './components/RouterErrorBoundary';
 import { createQueryClient } from './config/queryClient';
 import { ThemeProvider, useAppTheme } from './theme';
 import {
-  LazyHomeWithChunk as Home,
   LazySettingsWithChunk as Settings
 } from './components/LazyLoader';
 
@@ -131,15 +130,11 @@ const router = createBrowserRouter([
     children: [
       {
         path: "",
-        element: <Home />,
+        element: <AppModern />,
       },
       {
         path: "settings",
         element: <Settings />,
-      },
-      {
-        path: "suggest",
-        element: <AppModern />,
       },
       {
         path: "app",

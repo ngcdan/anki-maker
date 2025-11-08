@@ -18,7 +18,7 @@ interface Options {
 }
 
 
-function extractSections(markdown: string, prompt: string) {
+function extractSections(htmlContent: string, prompt: string) {
   const sections: {
     front: string;
     audio: string;
@@ -31,47 +31,55 @@ function extractSections(markdown: string, prompt: string) {
     back: ''
   };
 
-  // Extract Front section (từ đầu đến Meaning)
-  const frontMatch = markdown.match(/\*\*Word:\*\*.*?(?=\n---)/s);
+  // Extract Front section (từ front-section)
+  const frontMatch = htmlContent.match(/<div class="front-section">(.*?)<\/div>\s*<div class="back-section">/s);
   if (frontMatch) {
-    sections.front = frontMatch[0].trim();
+    sections.front = `<div class="front-section">${frontMatch[1]}</div>`;
   }
 
-  // Extract Audio section (các câu hội thoại)
-  const conversationMatch = markdown.match(/\*\*Conversation:\*\*\n(.*?)(?=\n\*\*Meaning:\*\*)/s);
-  if (conversationMatch) {
-    const conversationText = conversationMatch[1];
-
+  // Extract Audio section (từ dialogue)
+  const dialogueMatch = htmlContent.match(/<div class="dialogue">(.*?)<\/div>/s);
+  if (dialogueMatch) {
+    const dialogueContent = dialogueMatch[1];
     let answer = '';
 
-    // Process audio lines
-    sections.audio = conversationText
-      .split('\n')
-      .map(line => line.trim())
-      .filter(line => line.startsWith('- '))
-      .map(line => {
-        // Remove speaker name and colon (e.g., "Jake: ")
-        const processedLine = line.substring(line.indexOf(':') + 1)
-          .trim()
+    // Extract text from <p> tags and process for audio
+    const pMatches = dialogueContent.match(/<p><strong>.*?<\/strong>(.*?)<\/p>/g);
+    if (pMatches) {
+      sections.audio = pMatches
+        .map(pTag => {
+          // Extract text after speaker name
+          const textMatch = pTag.match(/<strong>.*?<\/strong>\s*(.*?)<\/p>/);
+          if (textMatch) {
+            const text = textMatch[1].trim();
 
-        // Extract answer if line contains keyword
-        if (processedLine.toLowerCase().includes(prompt)) {
-          answer = processedLine;
-        }
+            // Clean up any HTML entities and placeholder patterns
+            const cleanText = text
+              .replace(/{{.*?}}/g, prompt) // Replace placeholders with actual word
+              .replace(/&[a-z]+;/gi, '') // Remove HTML entities
+              .trim();
 
-        // Add SSML break tag at the end
-        return processedLine + ' <break time="0.4s"/>';
-      })
-      .join('\n');
+            // Extract answer if line contains keyword
+            if (cleanText.toLowerCase().includes(prompt.toLowerCase())) {
+              answer = cleanText;
+            }
 
-    sections.ans = answer;
+            // Add SSML break tag at the end
+            return cleanText + ' <break time="0.4s"/>';
+          }
+          return '';
+        })
+        .filter(line => line.trim() !== '')
+        .join('\n');
 
+      sections.ans = answer;
+    }
   }
 
-  // Extract Back section (phần Analysis trở đi)
-  const backMatch = markdown.match(/\*\*Analysis\*\*[\s\S]*$/);
+  // Extract Back section (phần back-section)
+  const backMatch = htmlContent.match(/<div class="back-section">(.*?)(?=<style>|$)/s);
   if (backMatch) {
-    sections.back = backMatch[0].trim();
+    sections.back = `<div class="back-section">${backMatch[1]}</div>`;
   }
 
   return sections;
@@ -115,7 +123,10 @@ export async function suggestAnkiNotes(
   }
 
   const answer: string = sections.ans;
-  const hiddenAnswerAtFront: string = sections.front.replace(answer, '[...]');
+  // Replace placeholders and hide the answer in front section
+  const hiddenAnswerAtFront: string = sections.front
+    .replace(/{{.*?}}/g, '[...]') // Replace all placeholders with [...]
+    .replace(new RegExp(prompt, 'gi'), '[...]'); // Also replace any remaining instances of the word
 
   console.log(sections);
 
@@ -125,8 +136,8 @@ export async function suggestAnkiNotes(
     modelName,
     fields: {
       Front: hiddenAnswerAtFront,
-      Question: `{{c1::${sections.ans}}}`,
-      Ans: sections.ans,
+      Question: `{{c1::${answer}}}`,
+      Ans: answer,
       Back: sections.back,
       Audio: sections.audio,
     },

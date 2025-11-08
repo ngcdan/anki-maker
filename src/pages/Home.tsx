@@ -5,8 +5,8 @@ const Bookmarklet = () => {
   return (
     <div>
       <Typography variant="h6">Bookmarklet</Typography>
-      <Typography>We offer a bookmarklet so you can quickly highlight some text in your browser and go directly to suggesting cards. Drag the following link to your bookmarks:</Typography>
-      <a id="bookmarklet" href="javascript:(function() { var selection = window.getSelection().toString(); var url = 'https://anki-card-creator.pages.dev/suggest?prompt=' + encodeURIComponent(selection); window.open(url, '_blank'); })();">Suggest Anki cards</a>
+      <Typography>We offer a bookmarklet so you can quickly highlight some text in your browser and go directly to creating cards. Drag the following link to your bookmarks:</Typography>
+      <a id="bookmarklet" href="javascript:(function() { var selection = window.getSelection().toString(); var url = 'https://anki-card-creator.pages.dev/?prompt=' + encodeURIComponent(selection); window.open(url, '_blank'); })();">Create Anki cards</a>
     </div>
   );
 };
@@ -21,10 +21,10 @@ function Home() {
       </Typography>
 
       <Card sx={{ maxWidth: 345, borderRadius: 2, margin: 'auto', marginTop: 5 }}>
-        <CardActionArea onClick={() => navigate('/suggest')}>
+        <CardActionArea onClick={() => navigate('/')}>
           <CardContent>
             <Typography variant="h5" component="div" align="center">
-              Suggest cards with AI
+              Create cards with AI
             </Typography>
           </CardContent>
         </CardActionArea>
