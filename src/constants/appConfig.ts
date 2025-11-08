@@ -18,8 +18,8 @@ export const DEFAULT_APP_CONFIG: AppConfig = {
 };
 
 export const DEFAULT_SETTINGS = {
-  deckName: 'CS',
-  modelName: 'Basic_cloze',
+  deckName: 'Default',
+  modelName: 'Basic',
   tags: [] as string[],
 } as const;
 

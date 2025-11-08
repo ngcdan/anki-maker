@@ -9,15 +9,22 @@ import {
   InputAdornment,
   Alert,
   Box,
-  Chip
+  Chip,
+  Button,
+  Card,
+  CardContent
 } from '@mui/material';
-import { Visibility, VisibilityOff, ContentCopy, Check } from '@mui/icons-material';
+import { Visibility, VisibilityOff, ContentCopy, Check, Tune as TuneIcon } from '@mui/icons-material';
 import { OpenAIKeyContext } from '../OpenAIKeyContext';
+import { usePromptConfig } from '../contexts/PromptConfigContext';
+import { PromptConfigSelector } from '../components/PromptConfigSelector';
 
 function Settings() {
   const { openAIKey, setOpenAIKey } = useContext(OpenAIKeyContext);
+  const { currentConfig } = usePromptConfig();
   const [showPassword, setShowPassword] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [configDialogOpen, setConfigDialogOpen] = useState(false);
 
   const handleOpenAIKeyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setOpenAIKey(event.target.value);
@@ -122,7 +129,47 @@ function Settings() {
             />
           </Box>
         </Grid>
+
+        <Grid item>
+          <Card sx={{ border: '1px solid', borderColor: 'divider' }}>
+            <CardContent>
+              <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <TuneIcon />
+                Phương pháp học
+              </Typography>
+
+              <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
+                <Box>
+                  <Typography variant="body1" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    {currentConfig.icon} {currentConfig.name}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {currentConfig.description}
+                  </Typography>
+                </Box>
+                <Button
+                  variant="outlined"
+                  onClick={() => setConfigDialogOpen(true)}
+                  startIcon={<TuneIcon />}
+                >
+                  Thay đổi
+                </Button>
+              </Box>
+
+              <Box display="flex" gap={1}>
+                <Chip label={currentConfig.settings.level} size="small" />
+                <Chip label={currentConfig.settings.focusArea} size="small" color="primary" />
+                <Chip label={currentConfig.settings.interactionMode} size="small" color="secondary" />
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
       </Grid>
+
+      <PromptConfigSelector
+        open={configDialogOpen}
+        onClose={() => setConfigDialogOpen(false)}
+      />
     </Container>
   );
 }

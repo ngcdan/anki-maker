@@ -5,6 +5,7 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { AppBar, Toolbar, Typography, Container, IconButton, Box, CircularProgress } from '@mui/material';
 import { Brightness4, Brightness7 } from '@mui/icons-material';
 import OpenAIKeyContextProvider from './OpenAIKeyContext';
+import { PromptConfigProvider } from './contexts/PromptConfigContext';
 import { ErrorBoundary, ToastProvider } from './components/layout';
 import { RouterOutlet } from './components/RouterOutlet';
 import { RouterErrorBoundary } from './components/RouterErrorBoundary';
@@ -21,6 +22,7 @@ const AppSimple = React.lazy(() => import('./pages/app/AppSimple'));
 const App = React.lazy(() => import('./pages/app/App'));
 const TestAnkiFormat = React.lazy(() => import('./pages/TestAnkiFormat'));
 const CompareNotecards = React.lazy(() => import('./pages/CompareNotecards'));
+const TypingPractice = React.lazy(() => import('./pages/TypingPractice'));
 
 function Navigation() {
   const { mode, toggleMode } = useAppTheme();
@@ -47,6 +49,21 @@ function Navigation() {
         </Typography>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Typography
+            component={Link}
+            to="/typing"
+            color="inherit"
+            sx={{
+              textDecoration: 'none',
+              fontWeight: 500,
+              '&:hover': {
+                color: 'primary.main',
+              },
+            }}
+          >
+            ⌨️ Typing Practice
+          </Typography>
+
           <Typography
             component={Link}
             to="/settings"
@@ -107,14 +124,16 @@ function Root() {
   return (
     <ErrorBoundary>
       <ToastProvider>
-        <OpenAIKeyContextProvider>
-          <Navigation />
-          <Container maxWidth="xl" sx={{ mt: 3, mb: 4 }}>
-            <Suspense fallback={<PageLoading />}>
-              <RouterOutlet />
-            </Suspense>
-          </Container>
-        </OpenAIKeyContextProvider>
+        <PromptConfigProvider>
+          <OpenAIKeyContextProvider>
+            <Navigation />
+            <Container maxWidth="xl" sx={{ mt: 3, mb: 4 }}>
+              <Suspense fallback={<PageLoading />}>
+                <RouterOutlet />
+              </Suspense>
+            </Container>
+          </OpenAIKeyContextProvider>
+        </PromptConfigProvider>
       </ToastProvider>
     </ErrorBoundary>
   );
@@ -153,6 +172,10 @@ const router = createBrowserRouter([
       {
         path: "compare",
         element: <CompareNotecards />,
+      },
+      {
+        path: "typing",
+        element: <TypingPractice />,
       },
     ],
   },

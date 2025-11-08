@@ -22,6 +22,8 @@ class AnkiService {
       const data: AnkiConnectResponse<T> = await response.json();
 
       if (data.error) {
+        console.error('AnkiConnect error:', data.error);
+        console.error('Request was:', JSON.stringify(params, null, 2));
         throw new Error(data.error);
       }
 
@@ -54,9 +56,60 @@ class AnkiService {
   }
 
   async addNote(note: Note): Promise<number> {
+    // Validate required fields
+    if (!note.deckName) {
+      throw new Error('Deck name is required');
+    }
+    if (!note.modelName) {
+      throw new Error('Model name is required');
+    }
+    if (!note.fields) {
+      throw new Error('Fields are required');
+    }
+
+    // Check if deck exists
+    try {
+      const decks = await this.fetchDecks();
+      if (!decks.includes(note.deckName)) {
+        console.warn(`Deck "${note.deckName}" does not exist. Available decks:`, decks);
+      }
+    } catch (error) {
+      console.warn('Could not verify deck existence:', error);
+    }
+
+    // Check if model exists and get its fields
+    try {
+      const models = await this.fetchModels();
+      if (!models.includes(note.modelName)) {
+        console.error(`Model "${note.modelName}" does not exist. Available models:`, models);
+        throw new Error(`Model "${note.modelName}" not found in Anki`);
+      }
+
+      const modelFields = await this.fetchModelFieldNames(note.modelName);
+      console.log(`Fields for model "${note.modelName}":`, modelFields);
+
+      // Check if all required fields are provided
+      const noteFields = Object.keys(note.fields);
+      console.log('Note fields provided:', noteFields);
+
+    } catch (error) {
+      console.error('Error validating model:', error);
+    }
+
+    // Transform our Note format to AnkiConnect format
+    const ankiNote = {
+      deckName: note.deckName,
+      modelName: note.modelName,
+      fields: note.fields,
+      tags: note.tags || [],
+      ...(note.audio && { audio: note.audio })
+    };
+
+    console.log('Sending note to AnkiConnect:', JSON.stringify(ankiNote, null, 2));
+
     return this.ankiConnect({
       action: 'addNote',
-      params: { note },
+      params: { note: ankiNote },
     });
   }
 

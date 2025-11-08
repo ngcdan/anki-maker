@@ -28,6 +28,7 @@ import { FormSkeleton, NoteCardSkeleton } from '../../components';
 import { AdvancedPromptInput } from '../../components/forms/AdvancedPromptInput';
 import NoteCardModern from '../../components/ui/NoteCardModern';
 import FeedbackSystem, { useFeedback } from '../../components/ui/FeedbackSystem';
+import { getRandomPrompt } from '../../utils/samplePrompts';
 
 // Import original functions
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -223,11 +224,6 @@ function App() {
 
   // Handle suggesting notes
   const handleSuggestNotes = () => {
-    if (!prompt.trim()) {
-      feedback.warning('Vui lòng nhập nội dung để tạo thẻ');
-      return;
-    }
-
     if (!hasValidKey) {
       feedback.error('Vui lòng cấu hình OpenAI API key trong Settings');
       return;
@@ -238,8 +234,17 @@ function App() {
       return;
     }
 
-    feedback.info('Đang tạo thẻ học từ nội dung của bạn...', { duration: 2000 });
-    generateNotesMutation.mutate(prompt.trim());
+    // Nếu prompt trống, sử dụng prompt ngẫu nhiên
+    let finalPrompt = prompt.trim();
+    if (!finalPrompt) {
+      finalPrompt = getRandomPrompt();
+      setPrompt(finalPrompt); // Cập nhật input để user thấy prompt được chọn
+      feedback.info(`🎲 Đã chọn prompt ngẫu nhiên: "${finalPrompt.substring(0, 50)}..."`, { duration: 3000 });
+    } else {
+      feedback.info('Đang tạo thẻ học từ nội dung của bạn...', { duration: 2000 });
+    }
+
+    generateNotesMutation.mutate(finalPrompt);
   };
 
   const handleCreateCard = async (note: Note) => {

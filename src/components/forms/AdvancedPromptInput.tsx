@@ -8,8 +8,11 @@ import {
   InputAdornment,
   Fade,
   CircularProgress,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
-import { Send, Psychology } from '@mui/icons-material';
+import { Send, Psychology, Casino } from '@mui/icons-material';
+import { getRandomPrompt } from '../../utils/samplePrompts';
 
 interface AdvancedPromptInputProps {
   value: string;
@@ -32,8 +35,16 @@ export const AdvancedPromptInput: React.FC<AdvancedPromptInputProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (value.trim() && !disabled && !loading) {
+    // Cho phép submit ngay cả khi value trống (sẽ dùng random prompt)
+    if (!disabled && !loading) {
       onSubmit();
+    }
+  };
+
+  const handleRandomPrompt = () => {
+    if (!disabled && !loading) {
+      const randomPrompt = getRandomPrompt();
+      onChange(randomPrompt);
     }
   };
 
@@ -123,36 +134,54 @@ export const AdvancedPromptInput: React.FC<AdvancedPromptInputProps> = ({
             }}
           />
 
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="caption" color="text.secondary">
-              Tip: Nhấn Ctrl+Enter để gửi nhanh
-            </Typography>
-
-            <Button
-              type="submit"
-              variant="contained"
-              disabled={!value.trim() || disabled || loading}
-              startIcon={loading ? <CircularProgress size={16} /> : <Send />}
-              sx={{
-                borderRadius: 2,
-                textTransform: 'none',
-                fontWeight: 600,
-                px: 3,
-                py: 1,
-                background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
-                '&:hover': {
-                  background: 'linear-gradient(135deg, #1d4ed8 0%, #6d28d9 100%)',
-                  transform: 'translateY(-2px)',
-                  boxShadow: 3,
-                },
-                '&:disabled': {
-                  background: 'grey.300',
-                  transform: 'none',
-                },
-              }}
-            >
-              {loading ? 'Đang tạo...' : 'Tạo ghi chú'}
-            </Button>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', mt: 1 }}>
+            <Box sx={{ display: 'flex', gap: 0.75, alignItems: 'center' }}>
+              <Tooltip title="Random prompt">
+                <IconButton
+                  onClick={handleRandomPrompt}
+                  disabled={disabled || loading}
+                  size="small"
+                  sx={{
+                    width: 32,
+                    height: 32,
+                    minWidth: 32,
+                    color: 'primary.main',
+                    border: '1px solid',
+                    borderColor: 'primary.light',
+                    '&:hover': {
+                      backgroundColor: 'primary.main',
+                      color: 'white',
+                      borderColor: 'primary.main',
+                    },
+                  }}
+                >
+                  <Casino fontSize="small" />
+                </IconButton>
+              </Tooltip>              <Button
+                type="submit"
+                variant="contained"
+                disabled={disabled || loading}
+                startIcon={loading ? <CircularProgress size={16} /> : <Send />}
+                sx={{
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  px: 2.5,
+                  py: 1,
+                  minWidth: 120,
+                  background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #1d4ed8 0%, #6d28d9 100%)',
+                    transform: 'translateY(-1px)',
+                  },
+                  '&:disabled': {
+                    background: 'grey.300',
+                  },
+                }}
+              >
+                {loading ? 'Đang tạo...' : (value.trim() ? 'Tạo thẻ' : '🎲 Ngẫu nhiên')}
+              </Button>
+            </Box>
           </Box>
         </Box>
       </Box>

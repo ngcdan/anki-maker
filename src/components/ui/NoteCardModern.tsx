@@ -58,7 +58,7 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
   const { mode } = useAppTheme();
   const [currentNote, setCurrentNote] = useState(note);
   const [expanded, setExpanded] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
+  const [showPreview, setShowPreview] = useState(true); // Mặc định hiển thị preview
   const [copied, setCopied] = useState<string | null>(null);
 
   // Original NoteCard hooks
@@ -128,8 +128,8 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
       // Convert markdown to HTML
       const updateFields = {
         ...fields,
-        Front: marked.parse(fields.Front),
-        Back: marked.parse(fields.Back),
+        Front: marked(fields.Front),
+        Back: marked(fields.Back),
       };
 
       let migrateNote: any = { ...currentNote, fields: updateFields };
@@ -252,13 +252,17 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
             </Box>
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <Tooltip title={showPreview ? 'Ẩn preview' : 'Xem preview'}>
+              <Tooltip title={showPreview ? 'Chỉnh sửa thẻ' : 'Xem preview HTML'}>
                 <IconButton
                   size="small"
                   onClick={() => setShowPreview(!showPreview)}
                   sx={{
-                    color: showPreview ? 'primary.main' : 'text.secondary',
-                    '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.1) },
+                    color: showPreview ? 'success.main' : 'primary.main',
+                    backgroundColor: showPreview ? alpha(theme.palette.success.main, 0.1) : alpha(theme.palette.primary.main, 0.1),
+                    '&:hover': {
+                      backgroundColor: showPreview ? alpha(theme.palette.success.main, 0.2) : alpha(theme.palette.primary.main, 0.2),
+                      transform: 'scale(1.1)',
+                    },
                   }}
                 >
                   {showPreview ? <VisibilityOff /> : <Visibility />}
@@ -283,282 +287,316 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
           </Box>
 
           <CardContent sx={{ flexGrow: 1, pt: 0 }}>
-            {/* Preview Mode */}
-            {showPreview && (
-              <Box sx={{ mb: 2 }}>
-                <Paper
-                  elevation={0}
-                  sx={{
-                    p: 2,
-                    borderRadius: 2,
-                    backgroundColor: alpha(theme.palette.primary.main, 0.05),
-                    border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
-                  }}
-                >
-                  <Typography variant="subtitle2" color="primary" sx={{ mb: 1, fontWeight: 600 }}>
-                    Preview
+            {showPreview ? (
+              /* Preview Mode */
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 2,
+                  borderRadius: 2,
+                  backgroundColor: alpha(theme.palette.primary.main, 0.05),
+                  border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+                }}
+              >
+                <Typography variant="subtitle2" color="primary" sx={{ mb: 1, fontWeight: 600 }}>
+                  🎯 Anki Card Preview
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+
+                {/* Front/Question Preview */}
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, mb: 1, display: 'block' }}>
+                    🔍 Mặt trước:
                   </Typography>
-                  <Divider sx={{ mb: 2 }} />
+                  <Box
+                    sx={{
+                      p: 2,
+                      borderRadius: 2,
+                      backgroundColor: mode === 'dark' ? 'grey.800' : 'white',
+                      border: `2px solid ${mode === 'dark' ? 'grey.700' : 'grey.200'}`,
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                      minHeight: '60px',
+                    }}
+                    dangerouslySetInnerHTML={{
+                      __html: marked(fields.Front || fields.Question || 'Không có nội dung')
+                    }}
+                  />
+                </Box>
 
-                  {/* Front/Question Preview */}
-                  <Box sx={{ mb: 2 }}>
-                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-                      Mặt trước:
+                {/* Back/Answer Preview */}
+                <Box>
+                  <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, mb: 1, display: 'block' }}>
+                    💡 Mặt sau:
+                  </Typography>
+                  <Box
+                    sx={{
+                      p: 2,
+                      borderRadius: 2,
+                      backgroundColor: mode === 'dark' ? 'grey.800' : 'white',
+                      border: `2px solid ${mode === 'dark' ? 'grey.700' : 'grey.200'}`,
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                      minHeight: '80px',
+                    }}
+                    dangerouslySetInnerHTML={{
+                      __html: marked(fields.Back || fields.Ans || 'Không có nội dung')
+                    }}
+                  />
+                </Box>
+
+                {/* Audio info if available */}
+                {fields.Audio && (
+                  <Box sx={{ mt: 2, p: 1.5, backgroundColor: alpha(theme.palette.info.main, 0.1), borderRadius: 1 }}>
+                    <Typography variant="caption" color="info.main" sx={{ fontWeight: 600 }}>
+                      🔊 Audio: {fields.Audio.substring(0, 50)}{fields.Audio.length > 50 ? '...' : ''}
                     </Typography>
-                    <Box
-                      sx={{
-                        mt: 0.5,
-                        p: 1.5,
-                        borderRadius: 1,
-                        backgroundColor: mode === 'dark' ? 'grey.800' : 'grey.50',
-                        border: `1px solid ${mode === 'dark' ? 'grey.700' : 'grey.200'}`,
-                      }}
-                      dangerouslySetInnerHTML={{
-                        __html: marked.parse(fields.Front || fields.Question || '')
+                  </Box>
+                )}
+
+                {/* Action buttons for preview */}
+                <Box sx={{ mt: 2, display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
+                  <Tooltip title="Copy Front HTML">
+                    <IconButton
+                      size="small"
+                      onClick={() => handleCopy(fields.Front || fields.Question || '', 'Front HTML')}
+                      sx={{ color: copied === 'Front HTML' ? 'success.main' : 'text.secondary' }}
+                    >
+                      <ContentCopy fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                  {fields.Audio && (
+                    <Tooltip title="Play Audio">
+                      <IconButton
+                        size="small"
+                        onClick={() => handlePlayAudio(fields.Audio)}
+                        disabled={isGenerating}
+                        sx={{ color: 'primary.main' }}
+                      >
+                        {isGenerating ? <CircularProgress size={16} /> : <VolumeUp fontSize="small" />}
+                      </IconButton>
+                    </Tooltip>
+                  )}
+                </Box>
+              </Paper>
+            ) : (
+              /* Edit Mode */
+              <Grid container spacing={2}>
+                <Grid item xs={6}>
+                  <TextField
+                    label="Deck"
+                    value={deckName}
+                    disabled
+                    size="small"
+                    fullWidth
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    label="Note type"
+                    value={modelName}
+                    disabled
+                    size="small"
+                    fullWidth
+                  />
+                </Grid>
+
+
+
+                {/* Compact view by default, expanded when clicked */}
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Front"
+                    defaultValue={fields.Front}
+                    multiline
+                    rows={expanded ? 3 : 2}
+                    name="Front"
+                    onChange={handleFieldChange}
+                    disabled={isFieldDisabled}
+                    size="small"
+                    InputProps={{
+                      endAdornment: (
+                        <Box sx={{ display: 'flex', gap: 0.5 }}>
+                          <Tooltip title="Copy">
+                            <IconButton
+                              size="small"
+                              onClick={() => handleCopy(fields.Front, 'Front')}
+                              sx={{ color: copied === 'Front' ? 'success.main' : 'text.secondary' }}
+                            >
+                              <ContentCopy fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          {fields.Front && (
+                            <Tooltip title="Play audio">
+                              <IconButton
+                                size="small"
+                                onClick={() => handlePlayAudio(fields.Front)}
+                                disabled={isGenerating}
+                                sx={{ color: 'text.secondary' }}
+                              >
+                                {isGenerating ? <CircularProgress size={16} /> : <VolumeUp fontSize="small" />}
+                              </IconButton>
+                            </Tooltip>
+                          )}
+                        </Box>
+                      ),
+                    }}
+                  />
+                </Grid>
+
+                {fields.Question && (
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Question"
+                      defaultValue={fields.Question}
+                      multiline
+                      rows={expanded ? 3 : 2}
+                      name="Question"
+                      onChange={handleFieldChange}
+                      disabled={isFieldDisabled}
+                      size="small"
+                      InputProps={{
+                        endAdornment: (
+                          <Box sx={{ display: 'flex', gap: 0.5 }}>
+                            <Tooltip title="Copy">
+                              <IconButton
+                                size="small"
+                                onClick={() => handleCopy(fields.Question, 'Question')}
+                                sx={{ color: copied === 'Question' ? 'success.main' : 'text.secondary' }}
+                              >
+                                <ContentCopy fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Play audio">
+                              <IconButton
+                                size="small"
+                                onClick={() => fields.Audio && handlePlayAudio(fields.Audio)}
+                                disabled={isGenerating}
+                                sx={{ color: 'text.secondary' }}
+                              >
+                                {isGenerating ? <CircularProgress size={16} /> : <VolumeUp fontSize="small" />}
+                              </IconButton>
+                            </Tooltip>
+                          </Box>
+                        ),
                       }}
                     />
-                  </Box>
+                  </Grid>
+                )}
 
-                  {/* Back/Answer Preview */}
-                  <Box>
-                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-                      Mặt sau:
-                    </Typography>
-                    <Box
-                      sx={{
-                        mt: 0.5,
-                        p: 1.5,
-                        borderRadius: 1,
-                        backgroundColor: mode === 'dark' ? 'grey.800' : 'grey.50',
-                        border: `1px solid ${mode === 'dark' ? 'grey.700' : 'grey.200'}`,
-                      }}
-                      dangerouslySetInnerHTML={{
-                        __html: marked.parse(fields.Back || fields.Ans || '')
+                {fields.Ans && (
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Answer"
+                      defaultValue={fields.Ans}
+                      multiline
+                      rows={expanded ? 3 : 2}
+                      name="Ans"
+                      onChange={handleFieldChange}
+                      disabled={isFieldDisabled}
+                      size="small"
+                      InputProps={{
+                        endAdornment: (
+                          <Box sx={{ display: 'flex', gap: 0.5 }}>
+                            <Tooltip title="Copy">
+                              <IconButton
+                                size="small"
+                                onClick={() => handleCopy(fields.Ans, 'Ans')}
+                                sx={{ color: copied === 'Ans' ? 'success.main' : 'text.secondary' }}
+                              >
+                                <ContentCopy fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Play audio">
+                              <IconButton
+                                size="small"
+                                onClick={() => fields.Audio && handlePlayAudio(fields.Audio)}
+                                disabled={isGenerating}
+                                sx={{ color: 'text.secondary' }}
+                              >
+                                {isGenerating ? <CircularProgress size={16} /> : <VolumeUp fontSize="small" />}
+                              </IconButton>
+                            </Tooltip>
+                          </Box>
+                        ),
                       }}
                     />
-                  </Box>
-                </Paper>
-              </Box>
+                  </Grid>
+                )}
+
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Back"
+                    defaultValue={fields.Back}
+                    multiline
+                    rows={expanded ? 3 : 2}
+                    name="Back"
+                    onChange={handleFieldChange}
+                    disabled={isFieldDisabled}
+                    size="small"
+                    InputProps={{
+                      endAdornment: (
+                        <Box sx={{ display: 'flex', gap: 0.5 }}>
+                          <Tooltip title="Copy">
+                            <IconButton
+                              size="small"
+                              onClick={() => handleCopy(fields.Back, 'Back')}
+                              sx={{ color: copied === 'Back' ? 'success.main' : 'text.secondary' }}
+                            >
+                              <ContentCopy fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          {fields.Back && (
+                            <Tooltip title="Play audio">
+                              <IconButton
+                                size="small"
+                                onClick={() => handlePlayAudio(fields.Back)}
+                                disabled={isGenerating}
+                                sx={{ color: 'text.secondary' }}
+                              >
+                                {isGenerating ? <CircularProgress size={16} /> : <VolumeUp fontSize="small" />}
+                              </IconButton>
+                            </Tooltip>
+                          )}
+                        </Box>
+                      ),
+                    }}
+                  />
+                </Grid>
+
+                {fields.Audio && (
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Audio"
+                      defaultValue={fields.Audio}
+                      multiline
+                      rows={expanded ? 2 : 1}
+                      name="Audio"
+                      onChange={handleFieldChange}
+                      disabled={isFieldDisabled}
+                      size="small"
+                      InputProps={{
+                        endAdornment: (
+                          <Tooltip title="Play audio">
+                            <IconButton
+                              size="small"
+                              onClick={() => handlePlayAudio(fields.Audio)}
+                              disabled={isGenerating}
+                              sx={{ color: 'text.secondary' }}
+                            >
+                              {isGenerating ? <CircularProgress size={16} /> : <VolumeUp fontSize="small" />}
+                            </IconButton>
+                          </Tooltip>
+                        ),
+                      }}
+                    />
+                  </Grid>
+                )}
+              </Grid>
             )}
-
-            {/* Edit Mode */}
-            <Grid container spacing={2}>
-              <Grid item xs={6}>
-                <TextField
-                  label="Deck"
-                  value={deckName}
-                  disabled
-                  size="small"
-                  fullWidth
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  label="Note type"
-                  value={modelName}
-                  disabled
-                  size="small"
-                  fullWidth
-                />
-              </Grid>
-
-
-
-              {/* Compact view by default, expanded when clicked */}
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Front"
-                  defaultValue={fields.Front}
-                  multiline
-                  rows={expanded ? 3 : 2}
-                  name="Front"
-                  onChange={handleFieldChange}
-                  disabled={isFieldDisabled}
-                  size="small"
-                  InputProps={{
-                    endAdornment: (
-                      <Box sx={{ display: 'flex', gap: 0.5 }}>
-                        <Tooltip title="Copy">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleCopy(fields.Front, 'Front')}
-                            sx={{ color: copied === 'Front' ? 'success.main' : 'text.secondary' }}
-                          >
-                            <ContentCopy fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        {fields.Front && (
-                          <Tooltip title="Play audio">
-                            <IconButton
-                              size="small"
-                              onClick={() => handlePlayAudio(fields.Front)}
-                              disabled={isGenerating}
-                              sx={{ color: 'text.secondary' }}
-                            >
-                              {isGenerating ? <CircularProgress size={16} /> : <VolumeUp fontSize="small" />}
-                            </IconButton>
-                          </Tooltip>
-                        )}
-                      </Box>
-                    ),
-                  }}
-                />
-              </Grid>
-
-              {fields.Question && (
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Question"
-                    defaultValue={fields.Question}
-                    multiline
-                    rows={expanded ? 3 : 2}
-                    name="Question"
-                    onChange={handleFieldChange}
-                    disabled={isFieldDisabled}
-                    size="small"
-                    InputProps={{
-                      endAdornment: (
-                        <Box sx={{ display: 'flex', gap: 0.5 }}>
-                          <Tooltip title="Copy">
-                            <IconButton
-                              size="small"
-                              onClick={() => handleCopy(fields.Question, 'Question')}
-                              sx={{ color: copied === 'Question' ? 'success.main' : 'text.secondary' }}
-                            >
-                              <ContentCopy fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Play audio">
-                            <IconButton
-                              size="small"
-                              onClick={() => fields.Audio && handlePlayAudio(fields.Audio)}
-                              disabled={isGenerating}
-                              sx={{ color: 'text.secondary' }}
-                            >
-                              {isGenerating ? <CircularProgress size={16} /> : <VolumeUp fontSize="small" />}
-                            </IconButton>
-                          </Tooltip>
-                        </Box>
-                      ),
-                    }}
-                  />
-                </Grid>
-              )}
-
-              {fields.Ans && (
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Answer"
-                    defaultValue={fields.Ans}
-                    multiline
-                    rows={expanded ? 3 : 2}
-                    name="Ans"
-                    onChange={handleFieldChange}
-                    disabled={isFieldDisabled}
-                    size="small"
-                    InputProps={{
-                      endAdornment: (
-                        <Box sx={{ display: 'flex', gap: 0.5 }}>
-                          <Tooltip title="Copy">
-                            <IconButton
-                              size="small"
-                              onClick={() => handleCopy(fields.Ans, 'Ans')}
-                              sx={{ color: copied === 'Ans' ? 'success.main' : 'text.secondary' }}
-                            >
-                              <ContentCopy fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Play audio">
-                            <IconButton
-                              size="small"
-                              onClick={() => fields.Audio && handlePlayAudio(fields.Audio)}
-                              disabled={isGenerating}
-                              sx={{ color: 'text.secondary' }}
-                            >
-                              {isGenerating ? <CircularProgress size={16} /> : <VolumeUp fontSize="small" />}
-                            </IconButton>
-                          </Tooltip>
-                        </Box>
-                      ),
-                    }}
-                  />
-                </Grid>
-              )}
-
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Back"
-                  defaultValue={fields.Back}
-                  multiline
-                  rows={expanded ? 3 : 2}
-                  name="Back"
-                  onChange={handleFieldChange}
-                  disabled={isFieldDisabled}
-                  size="small"
-                  InputProps={{
-                    endAdornment: (
-                      <Box sx={{ display: 'flex', gap: 0.5 }}>
-                        <Tooltip title="Copy">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleCopy(fields.Back, 'Back')}
-                            sx={{ color: copied === 'Back' ? 'success.main' : 'text.secondary' }}
-                          >
-                            <ContentCopy fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        {fields.Back && (
-                          <Tooltip title="Play audio">
-                            <IconButton
-                              size="small"
-                              onClick={() => handlePlayAudio(fields.Back)}
-                              disabled={isGenerating}
-                              sx={{ color: 'text.secondary' }}
-                            >
-                              {isGenerating ? <CircularProgress size={16} /> : <VolumeUp fontSize="small" />}
-                            </IconButton>
-                          </Tooltip>
-                        )}
-                      </Box>
-                    ),
-                  }}
-                />
-              </Grid>
-
-              {fields.Audio && (
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Audio"
-                    defaultValue={fields.Audio}
-                    multiline
-                    rows={expanded ? 2 : 1}
-                    name="Audio"
-                    onChange={handleFieldChange}
-                    disabled={isFieldDisabled}
-                    size="small"
-                    InputProps={{
-                      endAdornment: (
-                        <Tooltip title="Play audio">
-                          <IconButton
-                            size="small"
-                            onClick={() => handlePlayAudio(fields.Audio)}
-                            disabled={isGenerating}
-                            sx={{ color: 'text.secondary' }}
-                          >
-                            {isGenerating ? <CircularProgress size={16} /> : <VolumeUp fontSize="small" />}
-                          </IconButton>
-                        </Tooltip>
-                      ),
-                    }}
-                  />
-                </Grid>
-              )}
-            </Grid>
           </CardContent>
 
           <CardActions sx={{ justifyContent: 'space-between', px: 2, pb: 2 }}>

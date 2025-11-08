@@ -6,6 +6,7 @@ import { useLocation, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 
 import { NoteCard, DeckSelector, TagSelector, PromptInput, NoteCardSkeleton, FormSkeleton, SettingsFab } from '../../components';
+import { getRandomPrompt } from '../../utils/samplePrompts';
 import { useAnkiConnection, useOpenAI, useNoteManagement, useOpenAIKey, useErrorHandler } from '../../hooks';
 import { ERROR_MESSAGES, DEFAULT_SETTINGS, SUCCESS_MESSAGES } from '../../constants';
 import { SuggestOptions } from '../../types';
@@ -38,13 +39,18 @@ function App() {
   }, [promptParam, hasValidKey, isConnected]);
 
   const handleSuggestNotes = () => {
-    if (!prompt.trim()) return;
+    // Nếu prompt trống, sử dụng prompt ngẫu nhiên
+    let finalPrompt = prompt.trim();
+    if (!finalPrompt) {
+      finalPrompt = getRandomPrompt();
+      setPrompt(finalPrompt); // Cập nhật input để user thấy prompt được chọn
+    }
 
     const options: SuggestOptions = {
       deckName,
       modelName,
       tags: currentTags,
-      prompt: prompt.trim(),
+      prompt: finalPrompt,
     };
 
     suggestNotes(
@@ -128,6 +134,7 @@ function App() {
                 value={prompt}
                 onChange={setPrompt}
                 disabled={aiLoading}
+                placeholder="Nhập prompt của bạn hoặc để trống để AI tự tạo prompt ngẫu nhiên..."
               />
             </Grid>
 
@@ -135,10 +142,10 @@ function App() {
               <Button
                 variant="contained"
                 color="primary"
-                disabled={aiLoading || !hasValidKey || !isConnected || !prompt.trim()}
+                disabled={aiLoading || !hasValidKey || !isConnected}
                 onClick={handleSuggestNotes}
               >
-                {aiLoading ? 'Đang tạo thẻ...' : 'Suggest cards'}
+                {aiLoading ? 'Đang tạo thẻ...' : (prompt.trim() ? 'Tạo thẻ từ prompt' : '🎲 Tạo thẻ ngẫu nhiên')}
               </Button>
             </Grid>
           </>

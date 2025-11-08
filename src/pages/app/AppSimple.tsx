@@ -14,6 +14,7 @@ import { ERROR_MESSAGES, DEFAULT_SETTINGS } from '../../constants';
 import { Note } from '../../types';
 import useLocalStorage from '../../useLocalStorage';
 import FeedbackSystem, { useFeedback } from '../../components/ui/FeedbackSystem';
+import { getRandomPrompt } from '../../utils/samplePrompts';
 
 // Note management hook simplified
 const useSimpleNoteManagement = () => {
@@ -142,11 +143,6 @@ function AppSimple() {
   }, [promptParam, hasValidKey, isConnected]);
 
   const handleSuggestNotes = () => {
-    if (!prompt.trim()) {
-      feedback.warning('Vui lòng nhập nội dung để tạo thẻ');
-      return;
-    }
-
     if (!hasValidKey) {
       feedback.error('Vui lòng cấu hình OpenAI API key trong Settings');
       return;
@@ -157,8 +153,17 @@ function AppSimple() {
       return;
     }
 
-    feedback.info('Đang tạo thẻ học từ nội dung của bạn...', { duration: 2000 });
-    suggestNotesMutation.mutate(prompt.trim());
+    // Nếu prompt trống, sử dụng prompt ngẫu nhiên
+    let finalPrompt = prompt.trim();
+    if (!finalPrompt) {
+      finalPrompt = getRandomPrompt();
+      setPrompt(finalPrompt); // Cập nhật input để user thấy prompt được chọn
+      feedback.info(`🎲 Đã chọn prompt ngẫu nhiên: "${finalPrompt.substring(0, 50)}..."`, { duration: 3000 });
+    } else {
+      feedback.info('Đang tạo thẻ học từ nội dung của bạn...', { duration: 2000 });
+    }
+
+    suggestNotesMutation.mutate(finalPrompt);
   };
 
   const handleNoteTrash = (key: string) => {
@@ -233,6 +238,7 @@ function AppSimple() {
                 value={prompt}
                 onChange={setPrompt}
                 disabled={!hasValidKey || !isConnected || aiLoading}
+                placeholder="Nhập prompt của bạn hoặc để trống để AI tự tạo prompt ngẫu nhiên..."
               />
 
               <Button
@@ -241,7 +247,7 @@ function AppSimple() {
                 disabled={!hasValidKey || !isConnected || aiLoading}
                 sx={{ width: 'fit-content' }}
               >
-                {aiLoading ? 'Đang tạo...' : 'Tạo ghi chú'}
+                {aiLoading ? 'Đang tạo...' : (prompt.trim() ? 'Tạo thẻ từ prompt' : '🎲 Tạo thẻ ngẫu nhiên')}
               </Button>
             </>
           )}

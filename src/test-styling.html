@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anki Card Styling Preview</title>
+</head>
+
+<body>
+  <h1>🎯 Preview Anki Card Styling</h1>
+
+  <h2>📱 Sentence Building Format - Front</h2>
+  <div style="border: 2px solid #ddd; padding: 20px; margin: 20px 0; border-radius: 8px;">
+    <style>
+      /* === SENTENCE BUILDING STYLES === */
+      .sentence-front {
+        background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .vietnamese-idea {
+        font-size: 1.1em;
+        font-weight: 600;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .pattern-hint {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 10px;
+        border-radius: 8px;
+        font-size: 0.95em;
+        margin-top: 10px;
+        border-left: 3px solid rgba(255, 255, 255, 0.5);
+      }
+
+      .flag-vn::before {
+        content: "🇻🇳 ";
+      }
+
+      .pattern-icon::before {
+        content: "📝 ";
+      }
+    </style>
+
+    <div class="sentence-front">
+      <div class="vietnamese-idea flag-vn">
+        Ý tưởng: Tôi thích ăn phở vào buổi sáng
+      </div>
+      <div class="pattern-hint pattern-icon">
+        Pattern: Simple Present + time expression
+      </div>
+    </div>
+  </div>
+
+  <h2>📱 Sentence Building Format - Back</h2>
+  <div style="border: 2px solid #ddd; padding: 20px; margin: 20px 0; border-radius: 8px;">
+    <style>
+      .sentence-back {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 12px;
+        border: 1px solid #e9ecef;
+      }
+
+      .english-main {
+        background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+        color: white;
+        padding: 15px;
+        border-radius: 8px;
+        font-size: 1.1em;
+        font-weight: 500;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .alternatives-section {
+        background: #fff3e0;
+        border-left: 4px solid #ff9800;
+        padding: 15px;
+        border-radius: 8px;
+        margin: 15px 0;
+      }
+
+      .alternatives-section ul {
+        margin: 8px 0;
+        padding-left: 20px;
+      }
+
+      .alternatives-section li {
+        margin: 8px 0;
+        color: #333;
+        font-weight: 500;
+      }
+
+      .structure-explanation {
+        background: #e8f5e8;
+        border-left: 4px solid #4caf50;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 15px;
+      }
+
+      .structure-explanation strong {
+        color: #2e7d32;
+      }
+
+      .flag-us::before {
+        content: "🇺🇸 ";
+      }
+
+      .alternatives-icon::before {
+        content: "🔄 ";
+      }
+
+      .structure-icon::before {
+        content: "🎯 ";
+      }
+    </style>
+
+    <div class="sentence-back">
+      <div class="english-main flag-us">
+        English: I like eating pho in the morning
+      </div>
+
+      <div class="alternatives-section alternatives-icon">
+        <strong>Alternatives:</strong>
+        <ul>
+          <li>I enjoy having pho for breakfast</li>
+          <li>I love eating pho in the morning</li>
+        </ul>
+      </div>
+
+      <div class="structure-explanation structure-icon">
+        <strong>Structure:</strong> Subject + like/enjoy + V-ing + time
+      </div>
+    </div>
+  </div>
+
+  <h2>📱 Mobile Preview</h2>
+  <div style="max-width: 375px; border: 2px solid #333; padding: 10px; border-radius: 20px; margin: 20px auto;">
+    <h4>📱 iPhone View</h4>
+
+    <div class="sentence-front" style="margin: 10px 0;">
+      <div class="vietnamese-idea flag-vn">
+        Ý tưởng: Tôi muốn đi du lịch Sài Gòn
+      </div>
+      <div class="pattern-hint pattern-icon">
+        Pattern: Want to + infinitive
+      </div>
+    </div>
+
+    <div class="sentence-back" style="margin: 10px 0;">
+      <div class="english-main flag-us">
+        English: I want to travel to Ho Chi Minh City
+      </div>
+
+      <div class="alternatives-section alternatives-icon">
+        <strong>Alternatives:</strong>
+        <ul>
+          <li>I'd like to visit Saigon</li>
+          <li>I want to go to HCMC</li>
+        </ul>
+      </div>
+
+      <div class="structure-explanation structure-icon">
+        <strong>Structure:</strong> Subject + want to + base verb + destination
+      </div>
+    </div>
+  </div>
+
+</body>
+
+</html>
