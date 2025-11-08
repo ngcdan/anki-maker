@@ -1,17 +1,14 @@
 import {
   Box,
-  Container,
   Grid,
   Paper,
   Typography,
   Divider,
-  Chip,
   Alert,
   LinearProgress,
   Button,
 } from '@mui/material';
 import {
-  AutoAwesome,
   Settings,
   Psychology,
   TrendingUp,
@@ -37,7 +34,7 @@ import { OpenAIKeyContext } from '../../OpenAIKeyContext';
 import { useContext } from 'react';
 
 import { DEFAULT_SETTINGS } from '../../constants';
-import { useAppTheme, gradients } from '../../theme';
+import { useAppTheme } from '../../theme';
 import useLocalStorage from '../../useLocalStorage';
 import { Note } from '../../types';
 
@@ -88,36 +85,6 @@ function StatsCard({ title, value, icon, color = 'primary' }: {
         </Box>
       </Box>
     </Paper>
-  );
-}
-
-function StatusIndicator({ isConnected, hasValidKey }: {
-  isConnected: boolean;
-  hasValidKey: boolean;
-}) {
-  const getStatus = () => {
-    if (!hasValidKey) return { text: 'Cần API Key', color: 'error' as const, icon: <Cancel /> };
-    if (!isConnected) return { text: 'Anki Disconnected', color: 'warning' as const, icon: <Cancel /> };
-    return { text: 'Sẵn sàng', color: 'success' as const, icon: <CheckCircle /> };
-  };
-
-  const status = getStatus();
-
-  return (
-    <Chip
-      icon={status.icon}
-      label={status.text}
-      color={status.color}
-      variant="filled"
-      sx={{
-        borderRadius: 2,
-        fontWeight: 600,
-        px: 1,
-        '& .MuiChip-icon': {
-          fontSize: '1.1rem',
-        },
-      }}
-    />
   );
 }
 
@@ -289,66 +256,22 @@ function App() {
   const showProgress = generateNotesMutation.isLoading;
 
   return (
-    <Container maxWidth="xl" sx={{ py: 1 }}>
-      {/* Header Section */}
-      <Box sx={{ mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <Box
-              sx={{
-                background: gradients.primary,
-                borderRadius: 2,
-                p: 1,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <AutoAwesome sx={{ color: 'white', fontSize: '1.25rem' }} />
-            </Box>
-            <Box>
-              <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 0.25 }}>
-                AI Card Generator
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Tạo flashcards thông minh với AI
-              </Typography>
-            </Box>
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <StatusIndicator isConnected={isConnected} hasValidKey={hasValidKey} />
-            <Button
-              variant="outlined"
-              size="small"
-              startIcon={<Settings />}
-              href="/settings"
-              sx={{
-                borderRadius: 2,
-                textTransform: 'none',
-                fontWeight: 500,
-              }}
-            >
-              Settings
-            </Button>
-          </Box>
+    <Box sx={{ py: 1 }}>
+      {/* Progress Bar */}
+      {showProgress && (
+        <Box sx={{ mb: 3 }}>
+          <LinearProgress
+            sx={{
+              borderRadius: 1,
+              height: 6,
+              backgroundColor: mode === 'dark' ? 'grey.800' : 'grey.200',
+            }}
+          />
+          <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+            Đang tạo ghi chú với AI...
+          </Typography>
         </Box>
-
-        {/* Progress Bar */}
-        {showProgress && (
-          <Box sx={{ mb: 2 }}>
-            <LinearProgress
-              sx={{
-                borderRadius: 1,
-                height: 6,
-                backgroundColor: mode === 'dark' ? 'grey.800' : 'grey.200',
-              }}
-            />
-            <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
-              Đang tạo ghi chú với AI...
-            </Typography>
-          </Box>
-        )}
-      </Box>
+      )}
 
       {/* Stats Cards */}
       {stats.total > 0 && (
@@ -403,7 +326,22 @@ function App() {
               top: 16,
             }}
           >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1.5,
+                mb: 2,
+                cursor: 'pointer',
+                p: 1,
+                borderRadius: 1,
+                transition: 'background-color 0.2s ease',
+                '&:hover': {
+                  backgroundColor: 'action.hover'
+                }
+              }}
+              onClick={() => window.location.href = '/settings'}
+            >
               <Settings color="primary" />
               <Typography variant="h6" sx={{ fontWeight: 600 }}>
                 Cấu hình
@@ -520,7 +458,7 @@ function App() {
         position="top-right"
         maxVisible={3}
       />
-    </Container>
+    </Box>
   );
 }
 
