@@ -74,27 +74,51 @@ pnpm preview             # Preview production build
 
 ### Card Processing Pipeline
 1. Raw user prompt → OpenAI API call
-2. AI response → Parse into Note objects
-3. Markdown fields → HTML conversion via `marked`
-4. Optional: Audio text → TTS service → File attachment
-5. Final Note → AnkiConnect → Anki desktop
+````instructions
+# Anki Maker — AI contributor instructions
 
-## Key Files for Common Tasks
+Short, targeted guidance to get productive in this repo. Focus on where behaviour lives, where to change prompts/API calls, and how to run/build/tests locally.
 
-- **Add new card types**: Modify `Note` interface + `App.tsx` form fields
-- **Change AI behavior**: Edit prompt templates in `*_prompt.ts` files
-- **Anki integration**: All functions in `anki.ts` (add/modify AnkiConnect calls)
-- **UI components**: Material-UI based, main logic in `App.tsx`
-- **Routing**: Simple React Router setup in `main.tsx`
+Core facts
+- Frontend-only React + TypeScript app. Entry: `src/main.tsx`, main UI variants: `src/pages/app/App.tsx`, `AppModern.tsx`, `AppSimple.tsx`.
+- Main responsibilities: take a user prompt → call OpenAI → parse into Note objects → (optional) generate TTS → push notes to Anki via AnkiConnect.
 
-## External Dependencies & Integration Points
+Where to change AI behaviour
+- Prompts: `src/default_prompt.ts` and `src/vocab_prompt.ts`.
+- OpenAI wrapper: `src/openai.ts` and `src/services/openai/openaiService.ts` (streaming + parsing logic).
 
-- **AnkiConnect Plugin**: Required for Anki desktop integration
-- **TTS Service**: Optional, hardcoded to specific localhost endpoint
-- **OpenAI API**: Rate limits and token usage considerations
-- **Bookmarklet**: Browser integration for quick text selection (see `Home.tsx`)
+Anki integration
+- Low-level: `src/anki.ts` implements the JSON-RPC wrapper to AnkiConnect (localhost:8765).
+- Higher-level service: `src/services/anki/ankiService.ts` contains card creation flows and batching.
+- Important: AnkiConnect must be running locally on port 8765 for add-note flows to succeed.
 
-## Testing Strategy
-- Mock external services (AnkiConnect, OpenAI) with MSW
-- Focus on data transformation and state management
-- Component testing with React Testing Library setup
+Note shape and processing
+- Canonical shape is the `Note` used across the UI (see `src/types/index.ts` and uses in `src/components/NoteCardMemo.tsx`). Key fields: `modelName`, `deckName`, `fields` (Front/Back/Question/Ans/Audio), `tags`, `key`, `trashed`, `created`.
+- Markdown → HTML conversion happens before sending notes to Anki (see `marked` usage in services/components).
+
+State & app patterns to follow
+- External calls use React Query (see `src/config/queryClient.ts` and hooks in `src/hooks/useOpenAI.ts`, `useAnki.ts`).
+- OpenAI API key persistence: `src/OpenAIKeyContext.tsx` + `src/useLocalStorage.tsx`.
+- Prefer using existing hooks/services rather than calling fetch directly so caching, error handling, and telemetry remain consistent.
+
+Dev, build and test commands
+- Start dev server: `pnpm dev`
+- Build: `pnpm build` (TypeScript + Vite)
+- Lint: `pnpm lint`
+- Preview production build: `pnpm preview`
+- Run tests: `pnpm test` (Vitest + jsdom). Tests use MSW to mock external services; see `src/anki.test.ts` and `tests/setup.js`.
+
+Integration notes & gotchas
+- TTS endpoint is hardcoded in the app (search `tts` or `src/services/tts/ttsService.ts` and `src/App.tsx`). If you change it, update both service and UI config.
+- Network errors from AnkiConnect are thrown by `ankiConnect()`; callers usually display toasts (see `src/components/layout/ToastProvider/ToastProvider.tsx`).
+- The app stores lightweight user decisions (created/trashed) and feeds them to the prompt for context — modifying prompt templates may require updating parsing logic and tests.
+
+Where tests mock external integrations
+- MSW handlers live next to tests (see `src/anki.test.ts`) and `tests/setup.js` config. Mock AnkiConnect on `http://localhost:8765` and OpenAI responses for deterministic tests.
+
+When adding features
+- Add small, focused unit tests for services (OpenAI parsing, Anki payload shaping). Follow existing test patterns in `src/*.test.ts`.
+- Update `src/types/index.ts` for public data shape changes and run `pnpm test`.
+
+If anything in these notes is unclear or you want more examples (e.g., a sample Note payload or walkthrough of the Anki RPC flow), tell me which section and I will expand.
+````
