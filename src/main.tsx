@@ -5,6 +5,7 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { AppBar, Toolbar, Typography, Container, IconButton, Box, CircularProgress } from '@mui/material';
 import { Brightness4, Brightness7 } from '@mui/icons-material';
 import OpenAIKeyContextProvider from './OpenAIKeyContext';
+import { AIConfigProvider } from './contexts/AIConfigContext';
 import { ErrorBoundary, ToastProvider } from './components/layout';
 import { RouterOutlet } from './components/RouterOutlet';
 import { RouterErrorBoundary } from './components/RouterErrorBoundary';
@@ -108,12 +109,14 @@ function Root() {
     <ErrorBoundary>
       <ToastProvider>
         <OpenAIKeyContextProvider>
-          <Navigation />
-          <Container maxWidth="xl" sx={{ mt: 3, mb: 4 }}>
-            <Suspense fallback={<PageLoading />}>
-              <RouterOutlet />
-            </Suspense>
-          </Container>
+          <AIConfigProvider>
+            <Navigation />
+            <Container maxWidth="xl" sx={{ mt: 3, mb: 4 }}>
+              <Suspense fallback={<PageLoading />}>
+                <RouterOutlet />
+              </Suspense>
+            </Container>
+          </AIConfigProvider>
         </OpenAIKeyContextProvider>
       </ToastProvider>
     </ErrorBoundary>

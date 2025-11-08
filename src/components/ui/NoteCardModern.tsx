@@ -58,7 +58,7 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
   const { mode } = useAppTheme();
   const [currentNote, setCurrentNote] = useState(note);
   const [expanded, setExpanded] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
+  const [showPreview, setShowPreview] = useState(true);
   const [copied, setCopied] = useState<string | null>(null);
 
   // Original NoteCard hooks
@@ -197,151 +197,151 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
   }, [openAIKey, generateAudio]);
 
   return (
-    <Grid item xs={12} md={6}>
-      <Fade in timeout={300}>
-        <Card
+    <Fade in timeout={300}>
+      <Card
+        sx={{
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          position: 'relative',
+          overflow: 'visible',
+          borderRadius: 3,
+          borderLeft: `4px solid ${cardStatus.borderColor}`,
+          backgroundColor: mode === 'dark' ? 'grey.900' : 'background.paper',
+          boxShadow: mode === 'dark'
+            ? '0 8px 32px rgba(0, 0, 0, 0.3)'
+            : '0 4px 20px rgba(0, 0, 0, 0.08)',
+          transition: 'all 0.3s ease',
+          opacity: trashed ? 0.6 : 1,
+          filter: trashed ? 'grayscale(50%)' : 'none',
+          '&:hover': {
+            transform: trashed ? 'none' : 'translateY(-2px)',
+            boxShadow: trashed
+              ? (mode === 'dark' ? '0 8px 32px rgba(0, 0, 0, 0.3)' : '0 4px 20px rgba(0, 0, 0, 0.08)')
+              : (mode === 'dark' ? '0 12px 40px rgba(0, 0, 0, 0.4)' : '0 8px 30px rgba(0, 0, 0, 0.12)'),
+          },
+        }}
+      >
+        {/* Header with Status */}
+        <Box
           sx={{
-            height: '100%',
             display: 'flex',
-            flexDirection: 'column',
-            position: 'relative',
-            overflow: 'visible',
-            borderRadius: 3,
-            borderLeft: `4px solid ${cardStatus.borderColor}`,
-            backgroundColor: mode === 'dark' ? 'grey.900' : 'background.paper',
-            boxShadow: mode === 'dark'
-              ? '0 8px 32px rgba(0, 0, 0, 0.3)'
-              : '0 4px 20px rgba(0, 0, 0, 0.08)',
-            transition: 'all 0.3s ease',
-            opacity: trashed ? 0.6 : 1,
-            filter: trashed ? 'grayscale(50%)' : 'none',
-            '&:hover': {
-              transform: trashed ? 'none' : 'translateY(-2px)',
-              boxShadow: trashed
-                ? (mode === 'dark' ? '0 8px 32px rgba(0, 0, 0, 0.3)' : '0 4px 20px rgba(0, 0, 0, 0.08)')
-                : (mode === 'dark' ? '0 12px 40px rgba(0, 0, 0, 0.4)' : '0 8px 30px rgba(0, 0, 0, 0.12)'),
-            },
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            p: 2,
+            pb: 1,
           }}
         >
-          {/* Header with Status */}
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              p: 2,
-              pb: 1,
-            }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Chip
-                icon={cardStatus.icon}
-                label={cardStatus.text}
-                color={cardStatus.color as any}
-                size="small"
-                sx={{
-                  fontWeight: 600,
-                  backgroundColor: cardStatus.bgColor,
-                  color: cardStatus.borderColor,
-                  border: `1px solid ${alpha(cardStatus.borderColor, 0.3)}`,
-                }}
-              />
-              <Typography variant="caption" color="text.secondary">
-                {modelName} • {deckName}
-              </Typography>
-            </Box>
-
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <Tooltip title={showPreview ? 'Ẩn preview' : 'Xem preview'}>
-                <IconButton
-                  size="small"
-                  onClick={() => setShowPreview(!showPreview)}
-                  sx={{
-                    color: showPreview ? 'primary.main' : 'text.secondary',
-                    '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.1) },
-                  }}
-                >
-                  {showPreview ? <VisibilityOff /> : <Visibility />}
-                </IconButton>
-              </Tooltip>
-
-              <Tooltip title={expanded ? 'Thu gọn' : 'Mở rộng'}>
-                <IconButton
-                  size="small"
-                  onClick={() => setExpanded(!expanded)}
-                  sx={{
-                    transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
-                    transition: 'transform 0.3s',
-                    color: 'text.secondary',
-                    '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.1) },
-                  }}
-                >
-                  <ExpandMore />
-                </IconButton>
-              </Tooltip>
-            </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Chip
+              icon={cardStatus.icon}
+              label={cardStatus.text}
+              color={cardStatus.color as any}
+              size="small"
+              sx={{
+                fontWeight: 600,
+                backgroundColor: cardStatus.bgColor,
+                color: cardStatus.borderColor,
+                border: `1px solid ${alpha(cardStatus.borderColor, 0.3)}`,
+              }}
+            />
+            <Typography variant="caption" color="text.secondary">
+              {modelName} • {deckName}
+            </Typography>
           </Box>
 
-          <CardContent sx={{ flexGrow: 1, pt: 0 }}>
-            {/* Preview Mode */}
-            {showPreview && (
-              <Box sx={{ mb: 2 }}>
-                <Paper
-                  elevation={0}
-                  sx={{
-                    p: 2,
-                    borderRadius: 2,
-                    backgroundColor: alpha(theme.palette.primary.main, 0.05),
-                    border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
-                  }}
-                >
-                  <Typography variant="subtitle2" color="primary" sx={{ mb: 1, fontWeight: 600 }}>
-                    Preview
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <Tooltip title={showPreview ? 'Ẩn preview' : 'Xem preview'}>
+              <IconButton
+                size="small"
+                onClick={() => setShowPreview(!showPreview)}
+                sx={{
+                  color: showPreview ? 'primary.main' : 'text.secondary',
+                  '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.1) },
+                }}
+              >
+                {showPreview ? <VisibilityOff /> : <Visibility />}
+              </IconButton>
+            </Tooltip>
+
+            <Tooltip title={expanded ? 'Thu gọn' : 'Mở rộng'}>
+              <IconButton
+                size="small"
+                onClick={() => setExpanded(!expanded)}
+                sx={{
+                  transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                  transition: 'transform 0.3s',
+                  color: 'text.secondary',
+                  '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.1) },
+                }}
+              >
+                <ExpandMore />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        </Box>
+
+        <CardContent sx={{ flexGrow: 1, pt: 0 }}>
+          {/* Preview Mode */}
+          {showPreview && (
+            <Box sx={{ mb: 2 }}>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 2,
+                  borderRadius: 2,
+                  backgroundColor: alpha(theme.palette.primary.main, 0.05),
+                  border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+                }}
+              >
+                <Typography variant="subtitle2" color="primary" sx={{ mb: 1, fontWeight: 600 }}>
+                  Preview
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+
+                {/* Front/Question Preview */}
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                    Mặt trước:
                   </Typography>
-                  <Divider sx={{ mb: 2 }} />
+                  <Box
+                    sx={{
+                      mt: 0.5,
+                      p: 1.5,
+                      borderRadius: 1,
+                      backgroundColor: mode === 'dark' ? 'grey.800' : 'grey.50',
+                      border: `1px solid ${mode === 'dark' ? 'grey.700' : 'grey.200'}`,
+                    }}
+                    dangerouslySetInnerHTML={{
+                      __html: marked.parse(fields.Front || fields.Question || '')
+                    }}
+                  />
+                </Box>
 
-                  {/* Front/Question Preview */}
-                  <Box sx={{ mb: 2 }}>
-                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-                      Mặt trước:
-                    </Typography>
-                    <Box
-                      sx={{
-                        mt: 0.5,
-                        p: 1.5,
-                        borderRadius: 1,
-                        backgroundColor: mode === 'dark' ? 'grey.800' : 'grey.50',
-                        border: `1px solid ${mode === 'dark' ? 'grey.700' : 'grey.200'}`,
-                      }}
-                      dangerouslySetInnerHTML={{
-                        __html: marked.parse(fields.Front || fields.Question || '')
-                      }}
-                    />
-                  </Box>
+                {/* Back/Answer Preview */}
+                <Box>
+                  <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                    Mặt sau:
+                  </Typography>
+                  <Box
+                    sx={{
+                      mt: 0.5,
+                      p: 1.5,
+                      borderRadius: 1,
+                      backgroundColor: mode === 'dark' ? 'grey.800' : 'grey.50',
+                      border: `1px solid ${mode === 'dark' ? 'grey.700' : 'grey.200'}`,
+                    }}
+                    dangerouslySetInnerHTML={{
+                      __html: marked.parse(fields.Back || fields.Ans || '')
+                    }}
+                  />
+                </Box>
+              </Paper>
+            </Box>
+          )}
 
-                  {/* Back/Answer Preview */}
-                  <Box>
-                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-                      Mặt sau:
-                    </Typography>
-                    <Box
-                      sx={{
-                        mt: 0.5,
-                        p: 1.5,
-                        borderRadius: 1,
-                        backgroundColor: mode === 'dark' ? 'grey.800' : 'grey.50',
-                        border: `1px solid ${mode === 'dark' ? 'grey.700' : 'grey.200'}`,
-                      }}
-                      dangerouslySetInnerHTML={{
-                        __html: marked.parse(fields.Back || fields.Ans || '')
-                      }}
-                    />
-                  </Box>
-                </Paper>
-              </Box>
-            )}
-
-            {/* Edit Mode */}
+          {/* Edit Mode - Only show when preview is hidden */}
+          {!showPreview && (
             <Grid container spacing={2}>
               <Grid item xs={6}>
                 <TextField
@@ -361,8 +361,6 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
                   fullWidth
                 />
               </Grid>
-
-
 
               {/* Compact view by default, expanded when clicked */}
               <Grid item xs={12}>
@@ -559,41 +557,26 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
                 </Grid>
               )}
             </Grid>
-          </CardContent>
+          )}
+        </CardContent>
 
-          <CardActions sx={{ justifyContent: 'space-between', px: 2, pb: 2 }}>
-            {trashed ? (
-              // Thẻ đã trash: hiển thị khôi phục và xóa vĩnh viễn
-              <>
-                <Button
-                  size="small"
-                  color="primary"
-                  onClick={onRestore}
-                  startIcon={<Restore />}
-                  sx={{
-                    borderRadius: 2,
-                    textTransform: 'none',
-                    fontWeight: 500,
-                  }}
-                >
-                  Khôi phục
-                </Button>
-                <Button
-                  size="small"
-                  color="error"
-                  onClick={onDeletePermanent}
-                  startIcon={<DeleteForever />}
-                  sx={{
-                    borderRadius: 2,
-                    textTransform: 'none',
-                    fontWeight: 500,
-                  }}
-                >
-                  Xóa vĩnh viễn
-                </Button>
-              </>
-            ) : created ? (
-              // Thẻ đã tạo: chỉ hiển thị xóa vĩnh viễn
+        <CardActions sx={{ justifyContent: 'space-between', px: 2, pb: 2 }}>
+          {trashed ? (
+            // Thẻ đã trash: hiển thị khôi phục và xóa vĩnh viễn
+            <>
+              <Button
+                size="small"
+                color="primary"
+                onClick={onRestore}
+                startIcon={<Restore />}
+                sx={{
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 500,
+                }}
+              >
+                Khôi phục
+              </Button>
               <Button
                 size="small"
                 color="error"
@@ -603,61 +586,76 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
                   borderRadius: 2,
                   textTransform: 'none',
                   fontWeight: 500,
-                  ml: 'auto',
                 }}
               >
-                Xóa khỏi danh sách
+                Xóa vĩnh viễn
               </Button>
-            ) : (
-              // Thẻ mới: hiển thị trash và tạo thẻ
-              <>
-                <Button
-                  size="small"
-                  color="error"
-                  onClick={onTrash}
-                  disabled={isDisabled}
-                  startIcon={<Delete />}
-                  sx={{
-                    borderRadius: 2,
-                    textTransform: 'none',
-                    fontWeight: 500,
-                  }}
-                >
-                  Xóa
-                </Button>
+            </>
+          ) : created ? (
+            // Thẻ đã tạo: chỉ hiển thị xóa vĩnh viễn
+            <Button
+              size="small"
+              color="error"
+              onClick={onDeletePermanent}
+              startIcon={<DeleteForever />}
+              sx={{
+                borderRadius: 2,
+                textTransform: 'none',
+                fontWeight: 500,
+                ml: 'auto',
+              }}
+            >
+              Xóa khỏi danh sách
+            </Button>
+          ) : (
+            // Thẻ mới: hiển thị trash và tạo thẻ
+            <>
+              <Button
+                size="small"
+                color="error"
+                onClick={onTrash}
+                disabled={isDisabled}
+                startIcon={<Delete />}
+                sx={{
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 500,
+                }}
+              >
+                Xóa
+              </Button>
 
-                <Button
-                  size="small"
-                  variant="contained"
-                  color="primary"
-                  onClick={handleAddNote}
-                  disabled={isDisabled}
-                  startIcon={
-                    (isLoading || isGenerating) ? (
-                      <CircularProgress size={16} color="inherit" />
-                    ) : (
-                      <Add />
-                    )
-                  }
-                  sx={{
-                    borderRadius: 2,
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    px: 3,
+              <Button
+                size="small"
+                variant="contained"
+                color="primary"
+                onClick={handleAddNote}
+                disabled={isDisabled}
+                startIcon={
+                  (isLoading || isGenerating) ? (
+                    <CircularProgress size={16} color="inherit" />
+                  ) : (
+                    <Add />
+                  )
+                }
+                sx={{
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  px: 3,
+                  background: !isDisabled ? gradients.primary : undefined,
+                  '&:hover': {
                     background: !isDisabled ? gradients.primary : undefined,
-                    '&:hover': {
-                      background: !isDisabled ? gradients.primary : undefined,
-                    },
-                  }}
-                >
-                  {isGenerating ? 'Tạo audio...' : isLoading ? 'Đang thêm...' : 'Tạo thẻ'}
-                </Button>
-              </>
-            )}
-          </CardActions>
-        </Card>
-      </Fade>
-    </Grid>
+                  },
+                }}
+              >
+                {isGenerating ? 'Tạo audio...' : isLoading ? 'Đang thêm...' : 'Tạo thẻ'}
+              </Button>
+            </>
+          )}
+        </CardActions>
+      </Card>
+    </Fade>
   );
 });
 

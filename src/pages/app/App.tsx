@@ -3,10 +3,12 @@ import {
 } from '@mui/material';
 
 import { useLocation, Link } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
+import { OpenAIKeyContext } from '../../OpenAIKeyContext';
 
 import { NoteCard, DeckSelector, TagSelector, PromptInput, NoteCardSkeleton, FormSkeleton, SettingsFab } from '../../components';
-import { useAnkiConnection, useOpenAI, useNoteManagement, useOpenAIKey, useErrorHandler } from '../../hooks';
+import { PerformanceMonitor } from '../../components/PerformanceMonitor';
+import { useAnkiConnection, useOpenAI, useNoteManagement, useErrorHandler } from '../../hooks';
 import { ERROR_MESSAGES, DEFAULT_SETTINGS, SUCCESS_MESSAGES } from '../../constants';
 import { SuggestOptions } from '../../types';
 import useLocalStorage from '../../useLocalStorage';
@@ -23,7 +25,8 @@ function App() {
 
   // Hooks
   const { isConnected, isLoading: ankiLoading, hasError: ankiError, decks } = useAnkiConnection();
-  const { hasValidKey } = useOpenAIKey();
+  const { openAIKey } = useContext(OpenAIKeyContext);
+  const hasValidKey = openAIKey && openAIKey.startsWith('sk-');
   const { suggestNotes, isLoading: aiLoading, error: aiError } = useOpenAI();
   const { pendingNotes, actions } = useNoteManagement();
   const { handleError, handleSuccess } = useErrorHandler();
@@ -73,6 +76,9 @@ function App() {
 
   return (
     <Grid container sx={{ padding: '25px', maxWidth: 1200 }} spacing={4} justifyContent="flex-start" direction="column">
+      {/* Performance Monitor */}
+      <PerformanceMonitor />
+
       {/* Error Alerts */}
       {ankiError && (
         <Alert severity="error" sx={{ marginTop: '20px', marginLeft: '25px' }}>

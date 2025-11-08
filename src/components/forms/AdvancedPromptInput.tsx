@@ -4,12 +4,10 @@ import {
   TextField,
   Button,
   Paper,
-  Typography,
   InputAdornment,
-  Fade,
   CircularProgress,
 } from '@mui/material';
-import { Send, Psychology } from '@mui/icons-material';
+import { Send } from '@mui/icons-material';
 
 interface AdvancedPromptInputProps {
   value: string;
@@ -48,40 +46,19 @@ export const AdvancedPromptInput: React.FC<AdvancedPromptInputProps> = ({
     <Paper
       elevation={0}
       sx={{
-        p: 3,
-        borderRadius: 3,
-        background: 'linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, rgba(124, 58, 237, 0.05) 100%)',
-        border: theme => `2px solid ${focused ? theme.palette.primary.main : 'transparent'}`,
-        transition: 'all 0.3s ease',
-        position: 'relative',
-        overflow: 'hidden',
-        '&::before': {
-          content: '""',
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'linear-gradient(135deg, rgba(37, 99, 235, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%)',
-          opacity: focused ? 1 : 0,
-          transition: 'opacity 0.3s ease',
-          pointerEvents: 'none',
-        },
+        p: 2,
+        borderRadius: 2,
+        background: 'background.paper',
+        border: theme => `1px solid ${focused ? theme.palette.primary.main : theme.palette.divider}`,
+        transition: 'border-color 0.2s ease',
       }}
     >
-      <Box sx={{ position: 'relative', zIndex: 1 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-          <Psychology color="primary" />
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>
-            AI Prompt
-          </Typography>
-        </Box>
-
+      <Box>
         <Box component="form" onSubmit={handleSubmit}>
           <TextField
             fullWidth
             multiline
-            rows={4}
+            rows={3}
             value={value}
             onChange={(e) => onChange(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -93,62 +70,34 @@ export const AdvancedPromptInput: React.FC<AdvancedPromptInputProps> = ({
             InputProps={{
               endAdornment: loading ? (
                 <InputAdornment position="end">
-                  <Fade in={loading}>
-                    <Box>
-                      <CircularProgress size={20} />
-                    </Box>
-                  </Fade>
+                  <CircularProgress size={18} />
                 </InputAdornment>
               ) : undefined,
             }}
             sx={{
-              mb: 2,
+              mb: 1.5,
               '& .MuiOutlinedInput-root': {
-                borderRadius: 2,
-                backgroundColor: 'background.paper',
-                transition: 'all 0.2s ease',
-                '&:hover': {
-                  transform: 'translateY(-1px)',
-                  boxShadow: 1,
-                },
-                '&.Mui-focused': {
-                  transform: 'translateY(-1px)',
-                  boxShadow: 2,
-                },
+                borderRadius: 1,
               },
               '& .MuiOutlinedInput-input': {
-                fontSize: '1rem',
-                lineHeight: 1.6,
+                fontSize: '0.9rem',
+                lineHeight: 1.4,
               },
             }}
           />
 
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="caption" color="text.secondary">
-              Tip: Nhấn Ctrl+Enter để gửi nhanh
-            </Typography>
-
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
             <Button
               type="submit"
               variant="contained"
               disabled={!value.trim() || disabled || loading}
               startIcon={loading ? <CircularProgress size={16} /> : <Send />}
               sx={{
-                borderRadius: 2,
+                borderRadius: 1,
                 textTransform: 'none',
-                fontWeight: 600,
-                px: 3,
-                py: 1,
-                background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
-                '&:hover': {
-                  background: 'linear-gradient(135deg, #1d4ed8 0%, #6d28d9 100%)',
-                  transform: 'translateY(-2px)',
-                  boxShadow: 3,
-                },
-                '&:disabled': {
-                  background: 'grey.300',
-                  transform: 'none',
-                },
+                fontWeight: 500,
+                px: 2,
+                py: 0.75,
               }}
             >
               {loading ? 'Đang tạo...' : 'Tạo ghi chú'}

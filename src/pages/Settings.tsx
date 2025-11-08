@@ -9,10 +9,12 @@ import {
   InputAdornment,
   Alert,
   Box,
-  Chip
+  Chip,
+
 } from '@mui/material';
 import { Visibility, VisibilityOff, ContentCopy, Check } from '@mui/icons-material';
 import { OpenAIKeyContext } from '../OpenAIKeyContext';
+import { AIConfigSettings } from '../components/AIConfigSettings';
 
 function Settings() {
   const { openAIKey, setOpenAIKey } = useContext(OpenAIKeyContext);
@@ -121,6 +123,11 @@ function Settings() {
               error={openAIKey !== "" && !isValidKey(openAIKey)}
             />
           </Box>
+        </Grid>
+
+        {/* AI Configuration Settings */}
+        <Grid item xs={12}>
+          <AIConfigSettings />
         </Grid>
       </Grid>
     </Container>

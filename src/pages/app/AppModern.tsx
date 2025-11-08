@@ -23,7 +23,7 @@ import {
 import { useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 
-import { DeckSelector, TagSelector, ApiKeyManager } from '../../components/forms';
+import { DeckSelector, TagSelector } from '../../components/forms';
 import { FormSkeleton, NoteCardSkeleton } from '../../components';
 import { AdvancedPromptInput } from '../../components/forms/AdvancedPromptInput';
 import NoteCardModern from '../../components/ui/NoteCardModern';
@@ -289,28 +289,28 @@ function App() {
   const showProgress = generateNotesMutation.isLoading;
 
   return (
-    <Container maxWidth="xl" sx={{ py: 2 }}>
+    <Container maxWidth="xl" sx={{ py: 1 }}>
       {/* Header Section */}
-      <Box sx={{ mb: 4 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+      <Box sx={{ mb: 3 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
             <Box
               sx={{
                 background: gradients.primary,
                 borderRadius: 2,
-                p: 1.5,
+                p: 1,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <AutoAwesome sx={{ color: 'white', fontSize: '1.5rem' }} />
+              <AutoAwesome sx={{ color: 'white', fontSize: '1.25rem' }} />
             </Box>
             <Box>
-              <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 0.5 }}>
+              <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 0.25 }}>
                 AI Card Generator
               </Typography>
-              <Typography variant="body1" color="text.secondary">
+              <Typography variant="body2" color="text.secondary">
                 Tạo flashcards thông minh với AI
               </Typography>
             </Box>
@@ -352,7 +352,7 @@ function App() {
 
       {/* Stats Cards */}
       {stats.total > 0 && (
-        <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid container spacing={2} sx={{ mb: 3 }}>
           <Grid item xs={6} sm={3}>
             <StatsCard
               title="Tổng cộng"
@@ -389,21 +389,21 @@ function App() {
       )}
 
       {/* Main Content */}
-      <Grid container spacing={4}>
+      <Grid container spacing={3}>
         {/* Left Panel - Form */}
         <Grid item xs={12} lg={4}>
           <Paper
             elevation={0}
             sx={{
-              p: 4,
-              borderRadius: 3,
+              p: 3,
+              borderRadius: 2,
               background: mode === 'dark' ? 'grey.900' : 'white',
               border: `1px solid ${mode === 'dark' ? 'grey.800' : 'grey.200'}`,
               position: 'sticky',
-              top: 24,
+              top: 16,
             }}
           >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
               <Settings color="primary" />
               <Typography variant="h6" sx={{ fontWeight: 600 }}>
                 Cấu hình
@@ -413,11 +413,7 @@ function App() {
             {ankiLoading ? (
               <FormSkeleton />
             ) : (
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                <ApiKeyManager />
-
-                <Divider />
-
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <DeckSelector
                   value={deckName}
                   onChange={setDeckName}
@@ -429,7 +425,7 @@ function App() {
                   onChange={setCurrentTags}
                 />
 
-                <Divider />
+                <Divider sx={{ my: 1 }} />
 
                 <AdvancedPromptInput
                   value={prompt}
@@ -453,7 +449,7 @@ function App() {
         {/* Right Panel - Notes */}
         <Grid item xs={12} lg={8}>
           <Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
               <Typography variant="h6" sx={{ fontWeight: 600 }}>
                 Ghi chú được tạo ({pendingNotes.length})
               </Typography>
@@ -500,7 +496,7 @@ function App() {
                 </Typography>
               </Paper>
             ) : (
-              <Grid container spacing={2} alignItems="stretch">
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {pendingNotes.map((note) => (
                   <NoteCardModern
                     key={note.key}
@@ -511,7 +507,7 @@ function App() {
                     onDeletePermanent={() => handleDeletePermanent(note.key)}
                   />
                 ))}
-              </Grid>
+              </Box>
             )}
           </Box>
         </Grid>
