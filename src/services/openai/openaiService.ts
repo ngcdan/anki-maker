@@ -11,41 +11,57 @@ class OpenAIService {
       back: '',
     };
 
-    // Extract Front section (từ đầu đến Meaning)
-    const frontMatch = markdown.match(/\*\*Word:\*\*.*?(?=\n---)/s);
+    // Extract Front section (Word + Meaning until ---)
+    const frontMatch = markdown.match(/\*\*Word:\*\*.*?\*\*Meaning:\*\*.*?(?=\n---)/s);
     if (frontMatch) {
       sections.front = frontMatch[0].trim();
     }
 
-    // Extract Audio section (các câu hội thoại)
-    const conversationMatch = markdown.match(/\*\*Conversation:\*\*\n(.*?)(?=\n\*\*Meaning:\*\*)/s);
-    if (conversationMatch) {
-      const conversationText = conversationMatch[1];
+    // Extract conversation from Analysis section
+    const analysisMatch = markdown.match(/\*\*Analysis\*\*([\s\S]*?)(?=- \*\*Meaning in Vietnamese:\*\*)/);
+    if (analysisMatch) {
+      const analysisContent = analysisMatch[1];
       let answer = '';
 
-      // Process audio lines
-      sections.audio = conversationText
+      // Find English conversation lines (start with "- " and have speaker format, not Vietnamese translations)
+      const conversationLines = analysisContent
         .split('\n')
         .map(line => line.trim())
-        .filter(line => line.startsWith('- '))
+        .filter(line => {
+          // Include lines that start with "- " and have speaker format but are NOT Vietnamese translations (not wrapped in *)
+          return line.startsWith('- ') &&
+                 line.includes(':') &&
+                 !line.includes('*') && // Not Vietnamese translation
+                 line.length > 0;
+        });
+
+      // Process audio lines and extract answer
+      sections.audio = conversationLines
         .map(line => {
-          // Remove speaker name and colon (e.g., "Jake: ")
-          const processedLine = line.substring(line.indexOf(':') + 1).trim();
+          // Remove leading "- "
+          const cleanLine = line.replace(/^-\s*/, '');
 
-          // Extract answer if line contains keyword
-          if (processedLine.toLowerCase().includes(prompt.toLowerCase())) {
-            answer = processedLine;
+          // Extract just the speech part after colon
+          const colonIndex = cleanLine.indexOf(':');
+          if (colonIndex > -1) {
+            const speechPart = cleanLine.substring(colonIndex + 1).trim();
+
+            // Extract answer if line contains the prompt keyword
+            if (speechPart.toLowerCase().includes(prompt.toLowerCase())) {
+              answer = speechPart;
+            }
+
+            // Add pause after each sentence
+            return speechPart + ' <break time="1s"/>';
           }
-
-          // Add SSML break tag at the end
-          return processedLine + ' <break time="0.4s"/>';
+          return cleanLine + ' <break time="1s"/>';
         })
         .join('\n');
 
       sections.ans = answer;
     }
 
-    // Extract Back section (phần Analysis trở đi)
+    // Extract Back section (full Analysis section)
     const backMatch = markdown.match(/\*\*Analysis\*\*[\s\S]*$/);
     if (backMatch) {
       sections.back = backMatch[0].trim();

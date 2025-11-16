@@ -9,9 +9,6 @@ Please strictly follow this structure to generate Anki cards for each word provi
 
 **Word:** [...] *(part of speech)* (*/[phonetic transcription]/*) - (*/[phonetic transcription in Vietnamese]/*)
 
-**Conversation:**
-- [Provide a short, casual conversation (3-5 sentences) using the word. Prioritize daily conversations, romantic situations, or humorous contexts]
-
 **Meaning:**
 - *[Explain the meaning of the word in the context of the highlighted sentence, hidden the keyword ]*
 
@@ -21,7 +18,6 @@ Please strictly follow this structure to generate Anki cards for each word provi
 
 [Repeat the full conversation from the front]
 [Translate the full conversation into natural, conversational Vietnamese]
-/[Phonetic transcription of the full conversation in English]/
 
 - **Meaning in Vietnamese:** *[Provide the meaning of the word in Vietnamese]*
 
@@ -33,12 +29,6 @@ Please strictly follow this structure to generate Anki cards for each word provi
 
 Additional Instructions:
 - Use authentic American conversational style and slang where appropriate
-- Include common American expressions and fillers like:
-  * "Like..."
-  * "Ya know"
-  * "Gonna", "Wanna", "Gotta"
-  * "Aw man"
-  * "For real"
 - Use contractions naturally (I'm, don't, can't, etc.)
 - Keep conversations SHORT (3-5 sentences) and CASUAL - focus on how Americans actually talk
 - Use common daily life situations that Vietnamese learners can relate to (e.g., eating pho, chatting with friends, shopping)
@@ -53,12 +43,6 @@ Additional Instructions:
 const though = `
 **Word:** [...] *(adverb)* (*/ðoʊ/*) - (*/đâu/*)
 
-**Conversation:**
-- Jake: Yo, you wanna grab some pho tonight?
-- Mia: Aw man, I’d love to, but I’m broke.
-- Jake: It’s cheap though, like, five bucks!
-- Mia: For real? Okay, I’m in then!
-
 **Meaning:**
 
 - [...] here means “however” or “but,” adding a contrast to what was said before—Jake’s pointing out the pho isn’t expensive despite Mia’s worry.
@@ -67,21 +51,17 @@ const though = `
 
 **Analysis**
 
-  - Jake: Yo, you wanna grab some pho tonight? - *Ê, tối nay đi ăn phở không?*
+  - Jake: Yo, you wanna grab some pho tonight?
+  - *Ê, tối nay đi ăn phở không?*
 
-    /joʊ, juː ˈwɑːnə ɡræb sʌm foʊ təˈnaɪt/
+  - Mia: Aw man, I’d love to, but I’m broke.
+  - *Trời ơi, muốn lắm, nhưng tao hết tiền rồi.*
 
-  - Mia: Aw man, I’d love to, but I’m broke. - *Trời ơi, muốn lắm, nhưng tao hết tiền rồi.*
+  - Jake: It’s cheap though, like, five bucks!
+  - *Nhưng mà nó rẻ, chỉ có năm đô thôi!*
 
-    /ɔː mæn, aɪd lʌv tuː, bʌt aɪm broʊk/
-
-  - Jake: It’s cheap though, like, five bucks! - *Nhưng mà nó rẻ, chỉ có năm đô thôi!*
-
-    /ɪts tʃiːp ðoʊ, laɪk faɪv bʌks/
-
-  - Mia: For real? Okay, I’m in then! - *Thật hả? Vậy tao đi!*
-
-    /fər rɪəl? oʊˈkeɪ, aɪm ɪn ðɛn/
+  - Mia: For real? Okay, I’m in then!
+  - *Thật hả? Vậy tao đi!*
 
 - **Meaning in Vietnamese:** *"tuy nhiên", "dù sao"*
 
