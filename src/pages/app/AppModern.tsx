@@ -1,24 +1,5 @@
-import {
-  Box,
-  Container,
-  Grid,
-  Paper,
-  Typography,
-  Divider,
-  Chip,
-  Alert,
-  LinearProgress,
-  Button,
-} from '@mui/material';
-import {
-  AutoAwesome,
-  Settings,
-  Psychology,
-  TrendingUp,
-  CheckCircle,
-  Cancel,
-  ClearAll,
-} from '@mui/icons-material';
+import { Box, Container, Grid, Paper, Typography, Divider, Chip, Alert, LinearProgress, Button } from '@mui/material';
+import { AutoAwesome, Settings, Psychology, TrendingUp, CheckCircle, Cancel, ClearAll } from '@mui/icons-material';
 
 import { useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
@@ -31,7 +12,8 @@ import FeedbackSystem, { useFeedback } from '../../components/ui/FeedbackSystem'
 
 // Import original functions
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { fetchDecks, addNote } from '../../anki';
+import { fetchDecks } from '../../anki';
+// import { addNote } from '../../anki'; // Commented out - Anki integration disabled
 import { suggestAnkiNotes } from '../../openai';
 import { OpenAIKeyContext } from '../../OpenAIKeyContext';
 import { useContext } from 'react';
@@ -196,16 +178,16 @@ function App() {
     },
   });
 
-  // Add note mutation
-  const addNoteMutation = useMutation({
-    mutationFn: addNote,
-    onSuccess: () => {
-      feedback.success('Đã thêm thẻ vào Anki thành công!');
-    },
-    onError: (error) => {
-      feedback.error('Có lỗi khi thêm thẻ vào Anki: ' + String(error));
-    },
-  });
+  // Add note mutation - COMMENTED OUT: Anki integration disabled
+  // const addNoteMutation = useMutation({
+  //   mutationFn: addNote,
+  //   onSuccess: () => {
+  //     feedback.success('Đã thêm thẻ vào Anki thành công!');
+  //   },
+  //   onError: (error) => {
+  //     feedback.error('Có lỗi khi thêm thẻ vào Anki: ' + String(error));
+  //   },
+  // });
 
   // Stats calculations
   const stats = {
@@ -244,6 +226,9 @@ function App() {
   };
 
   const handleCreateCard = async (note: Note) => {
+    console.log('call handle create card');
+    console.log(note);
+
     try {
       // Convert markdown to HTML for Front/Back before adding
       const convertedFields = {
@@ -260,11 +245,19 @@ function App() {
         tags: note.tags,
       };
 
-      await addNoteMutation.mutateAsync(ankiNote);
+      // COMMENTED OUT: Anki API call disabled per user request
+      // await addNoteMutation.mutateAsync(ankiNote);
+
+      // Simulate successful creation without calling Anki
+      console.log('Would create Anki note:', ankiNote);
+
       // Update note status
       setPendingNotes(prev =>
         prev.map(n => n.key === note.key ? { ...n, created: true } : n)
       );
+
+      // Show success message
+      feedback.success('Thẻ đã được đánh dấu là đã tạo (không gọi Anki)');
     } catch (error) {
       console.error('Error creating card:', error);
     }

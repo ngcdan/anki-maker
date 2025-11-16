@@ -1,36 +1,11 @@
 import React, { useState, useContext, memo, useMemo, useCallback, useEffect } from 'react';
 import {
-  Card,
-  CardContent,
-  CardActions,
-  Grid,
-  TextField,
-  Button,
-  CircularProgress,
-  Typography,
-  Box,
-  Chip,
-  IconButton,
-  Divider,
-  Fade,
-  Tooltip,
-  Paper,
-  useTheme,
-  alpha,
+  Card, CardContent, CardActions, Grid, TextField, Button, CircularProgress, Typography, Box, Chip, IconButton,
+  Divider, Fade, Tooltip, Paper, useTheme, alpha
 } from '@mui/material';
 import {
-  CheckCircle,
-  Cancel,
-  VolumeUp,
-  Delete,
-  ExpandMore,
-  ContentCopy,
-  Psychology,
-  Add,
-  Visibility,
-  VisibilityOff,
-  Restore,
-  DeleteForever,
+  CheckCircle, Cancel, VolumeUp, Delete, ExpandMore, ContentCopy, Psychology, Add, Visibility, VisibilityOff, Restore,
+  DeleteForever
 } from '@mui/icons-material';
 import { marked } from 'marked';
 
@@ -304,22 +279,10 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
             {/* Edit Mode */}
             <Grid container spacing={2}>
               <Grid item xs={6}>
-                <TextField
-                  label="Deck"
-                  value={deckName}
-                  disabled
-                  size="small"
-                  fullWidth
-                />
+                <TextField label="Deck" value={deckName} disabled size="small" fullWidth />
               </Grid>
               <Grid item xs={6}>
-                <TextField
-                  label="Note type"
-                  value={modelName}
-                  disabled
-                  size="small"
-                  fullWidth
-                />
+                <TextField label="Note type" value={modelName} disabled size="small" fullWidth />
               </Grid>
 
 
