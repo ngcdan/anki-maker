@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Note } from '../types';
+import { Note } from '../shared';
 
 export const useNoteManagement = (initialNotes: Note[] = []) => {
   const [notes, setNotes] = useState<Note[]>(initialNotes);

@@ -246,7 +246,7 @@ export const useFeedback = () => {
     setMessages(prev => [newMessage, ...prev]);
 
     // Auto-dismiss if not persistent
-    if (!newMessage.persistent && newMessage.duration > 0) {
+    if (!newMessage.persistent && newMessage.duration && newMessage.duration > 0) {
       setTimeout(() => {
         dismissMessage(id);
       }, newMessage.duration);

@@ -1,8 +1,8 @@
 import { useMutation } from '@tanstack/react-query';
 import { useContext } from 'react';
-import { OpenAIKeyContext } from '../OpenAIKeyContext';
-import { SuggestOptions, Note } from '../types';
-import { ERROR_MESSAGES } from '../constants';
+import { OpenAIKeyContext } from '../contexts/OpenAIKeyContext';
+import { SuggestOptions, Note } from '../shared';
+import { ERROR_MESSAGES } from '../shared';
 
 // Import service (sẽ tạo sau)
 import { openaiService } from '../services/openai';

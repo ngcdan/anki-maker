@@ -32,9 +32,7 @@ export interface AppConfig {
     port: number;
   };
   tts: {
-    url: string;
     enabled: boolean;
-    defaultDir: string;
   };
   openai: {
     model: string;
@@ -48,17 +46,6 @@ export interface SuggestOptions {
   modelName: string;
   prompt: string;
   tags: string[];
-}
-
-export interface TTSRequest {
-  text: string;
-  download: boolean;
-  dir: string;
-}
-
-export interface TTSResponse {
-  filePath: string;
-  fileName: string;
 }
 
 export interface OpenAITTSRequest {

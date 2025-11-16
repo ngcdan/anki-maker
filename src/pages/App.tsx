@@ -4,25 +4,25 @@ import { AutoAwesome, Settings, Psychology, TrendingUp, CheckCircle, Cancel, Cle
 import { useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 
-import { DeckSelector, TagSelector, ApiKeyManager } from '../../components/forms';
-import { FormSkeleton, NoteCardSkeleton } from '../../components';
-import { AdvancedPromptInput } from '../../components/forms/AdvancedPromptInput';
-import NoteCardModern from '../../components/ui/NoteCardModern';
-import FeedbackSystem, { useFeedback } from '../../components/ui/FeedbackSystem';
+import { DeckSelector, TagSelector, ApiKeyManager } from '../components/forms';
+import { FormSkeleton, NoteCardSkeleton } from '../components';
+import { AdvancedPromptInput } from '../components/forms/AdvancedPromptInput';
+import NoteCard from '../components/NoteCard';
+import FeedbackSystem, { useFeedback } from '../components/FeedbackSystem';
 
 // Import original functions
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { fetchDecks } from '../../anki';
-// import { addNote } from '../../anki'; // Commented out - Anki integration disabled
-import { suggestAnkiNotes } from '../../openai';
-import { OpenAIKeyContext } from '../../OpenAIKeyContext';
+import { ankiService } from '../services/anki';
+// import { ankiService } from '../../services/anki'; // Commented out - Anki integration disabled
+import { openaiService } from '../services/openai';
+import { OpenAIKeyContext } from '../contexts/OpenAIKeyContext';
 import { useContext } from 'react';
 import { marked } from 'marked';
 
-import { DEFAULT_SETTINGS } from '../../constants';
-import { useAppTheme, gradients } from '../../theme';
-import useLocalStorage from '../../useLocalStorage';
-import { Note } from '../../types';
+import { DEFAULT_SETTINGS } from '../shared';
+import { useAppTheme, gradients } from '../theme';
+import { useLocalStorage } from '../hooks';
+import { Note } from '../shared';
 
 function StatsCard({ title, value, icon, color = 'primary' }: {
   title: string;
@@ -126,7 +126,7 @@ function App() {
   // Fetch Anki data
   const { data: decks = [], isLoading: decksLoading, error: decksError } = useQuery({
     queryKey: ['decks'],
-    queryFn: fetchDecks,
+    queryFn: () => ankiService.fetchDecks(),
     staleTime: 5 * 60 * 1000,
   });
 
@@ -147,7 +147,7 @@ function App() {
         tags: currentTags,
       };
 
-      const rawNotes = await suggestAnkiNotes(openAIKey, options, pendingNotes);
+      const rawNotes = await openaiService.suggestAnkiNotes(openAIKey, options, pendingNotes);
 
       // Convert raw notes to proper Note format
       const convertedNotes: Note[] = rawNotes.map((rawNote: any) => ({
@@ -503,7 +503,7 @@ function App() {
             ) : (
               <Grid container spacing={2} alignItems="stretch">
                 {pendingNotes.map((note) => (
-                  <NoteCardModern
+                  <NoteCard
                     key={note.key}
                     note={note}
                     onCreate={() => handleCreateCard(note)}

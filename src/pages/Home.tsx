@@ -6,7 +6,7 @@ const Bookmarklet = () => {
     <div>
       <Typography variant="h6">Bookmarklet</Typography>
       <Typography>We offer a bookmarklet so you can quickly highlight some text in your browser and go directly to suggesting cards. Drag the following link to your bookmarks:</Typography>
-      <a id="bookmarklet" href="javascript:(function() { var selection = window.getSelection().toString(); var url = 'https://anki-card-creator.pages.dev/suggest?prompt=' + encodeURIComponent(selection); window.open(url, '_blank'); })();">Suggest Anki cards</a>
+      <a id="bookmarklet" href="javascript:(function() { var selection = window.getSelection().toString(); var url = 'https://anki-maker.vercel.app/suggest?prompt=' + encodeURIComponent(selection); window.open(url, '_blank'); })();">Suggest Anki cards</a>
     </div>
   );
 };

@@ -1,33 +1,7 @@
-import { ENDPOINTS, ERROR_MESSAGES } from '../../constants';
-import { TTSRequest, TTSResponse, OpenAITTSRequest, OpenAITTSResponse } from '../../types';
+import { ENDPOINTS, ERROR_MESSAGES } from '../../shared';
+import { OpenAITTSRequest, OpenAITTSResponse } from '../../shared';
 
 class TTSService {
-  // Legacy method for backward compatibility
-  async generateAudio(request: TTSRequest): Promise<TTSResponse> {
-    try {
-      const response = await fetch(ENDPOINTS.TTS_SERVICE, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(request),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data: TTSResponse = await response.json();
-      return data;
-    } catch (error) {
-      if (error instanceof TypeError && error.message.includes('fetch')) {
-        throw new Error(ERROR_MESSAGES.TTS_SERVICE);
-      }
-      throw error;
-    }
-  }
-
-  // New OpenAI TTS method
   async generateAudioWithOpenAI(
     text: string,
     openAIKey: string,
@@ -105,21 +79,7 @@ class TTSService {
     };
   }
 
-  async testConnection(): Promise<boolean> {
-    try {
-      // Test with a simple request
-      await this.generateAudio({
-        text: 'test',
-        download: false,
-        dir: '/tmp',
-      });
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  async testOpenAIConnection(openAIKey: string): Promise<boolean> {
+  async testConnection(openAIKey: string): Promise<boolean> {
     try {
       await this.generateAudioWithOpenAI('test', openAIKey);
       return true;

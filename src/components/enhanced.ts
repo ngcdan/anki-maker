@@ -1,6 +1,6 @@
 // Enhanced UI Components
-export { default as FeedbackSystem, useFeedback } from './ui/FeedbackSystem';
-export type { FeedbackMessage } from './ui/FeedbackSystem';
+export { default as FeedbackSystem, useFeedback } from './FeedbackSystem';
+export type { FeedbackMessage } from './FeedbackSystem';
 
 // Form Components
 export { AdvancedPromptInput } from './forms/AdvancedPromptInput';

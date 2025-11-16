@@ -12,7 +12,7 @@ import {
   Chip
 } from '@mui/material';
 import { Visibility, VisibilityOff, ContentCopy, Check } from '@mui/icons-material';
-import { OpenAIKeyContext } from '../OpenAIKeyContext';
+import { OpenAIKeyContext } from '../contexts/OpenAIKeyContext';
 
 function Settings() {
   const { openAIKey, setOpenAIKey } = useContext(OpenAIKeyContext);

@@ -1,6 +1,6 @@
 import { setupServer } from 'msw/node'
 import { rest } from 'msw'
-import { fetchDecks, fetchModels, fetchModelFieldNames } from './anki' // import the functions from the correct path
+import { ankiService } from '../services/anki' // import the functions from the correct path
 import { afterAll, beforeAll, expect, it } from "vitest"
 const server = setupServer(
     rest.post('http://localhost:8765', async (req, res, ctx) => { // setup a mock server
@@ -20,15 +20,15 @@ const server = setupServer(
 beforeAll(() => server.listen()) // start the server before all tests
 afterAll(() => server.close()) // close the server after all tests
 it('fetches deck names correctly', async () => {
-    const deckNames = await fetchDecks()
+    const deckNames = await ankiService.fetchDecks()
     expect(deckNames).toEqual(['deck1', 'deck2', 'deck3'])
 })
 it('fetches model names correctly', async () => {
-    const modelNames = await fetchModels()
+    const modelNames = await ankiService.fetchModels()
     expect(modelNames).toEqual(['model1', 'model2', 'model3'])
 })
 it('fetches model field names correctly for Basic model', async () => {
-    const modelFieldNames = await fetchModelFieldNames('Basic')
+    const modelFieldNames = await ankiService.fetchModelFieldNames('Basic')
     expect(modelFieldNames).toEqual(['field1', 'field2', 'field3'])
 })
 it('properly handles network errors when fetching deck names', async () => {
@@ -37,7 +37,7 @@ it('properly handles network errors when fetching deck names', async () => {
             return res(ctx.status(500))
         })
     )
-    await expect(fetchDecks()).rejects.toThrow('Network response was not ok')
+    await expect(ankiService.fetchDecks()).rejects.toThrow('Network response was not ok')
 })
 it('properly handles network errors when fetching model names', async () => {
     server.use(
@@ -45,7 +45,7 @@ it('properly handles network errors when fetching model names', async () => {
             return res(ctx.status(500))
         })
     )
-    await expect(fetchModels()).rejects.toThrow('Network response was not ok')
+    await expect(ankiService.fetchModels()).rejects.toThrow('Network response was not ok')
 })
 it('properly handles network errors when fetching model field names', async () => {
     server.use(
@@ -53,7 +53,7 @@ it('properly handles network errors when fetching model field names', async () =
             return res(ctx.status(500))
         })
     )
-    await expect(fetchModelFieldNames('Basic')).rejects.toThrow('Network response was not ok')
+    await expect(ankiService.fetchModelFieldNames('Basic')).rejects.toThrow('Network response was not ok')
 })
 it('throws an error when the server returns an error message for deck names', async () => {
     server.use(
@@ -61,7 +61,7 @@ it('throws an error when the server returns an error message for deck names', as
             return res(ctx.json({ error: 'Server error' }))
         })
     )
-    await expect(fetchDecks()).rejects.toThrow('Server error')
+    await expect(ankiService.fetchDecks()).rejects.toThrow('Server error')
 })
 it('throws an error when the server returns an error message for model names', async () => {
     server.use(
@@ -69,7 +69,7 @@ it('throws an error when the server returns an error message for model names', a
             return res(ctx.json({ error: 'Server error' }))
         })
     )
-    await expect(fetchModels()).rejects.toThrow('Server error')
+    await expect(ankiService.fetchModels()).rejects.toThrow('Server error')
 })
 it('throws an error when the server returns an error message for model field names', async () => {
     server.use(
@@ -77,5 +77,5 @@ it('throws an error when the server returns an error message for model field nam
             return res(ctx.json({ error: 'Server error' }))
         })
     )
-    await expect(fetchModelFieldNames('Basic')).rejects.toThrow('Server error')
+    await expect(ankiService.fetchModelFieldNames('Basic')).rejects.toThrow('Server error')
 })

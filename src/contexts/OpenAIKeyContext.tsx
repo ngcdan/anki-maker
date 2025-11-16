@@ -1,5 +1,5 @@
 import { ReactNode, createContext } from 'react'
-import useLocalStorage from './useLocalStorage';
+import { useLocalStorage } from '../hooks';
 
 interface OpenAIKeyContextProps {
   openAIKey: string;

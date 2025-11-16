@@ -46,7 +46,7 @@ export const useTTS = () => {
 
   const testConnection = async (openAIKey: string): Promise<boolean> => {
     try {
-      return await ttsService.testOpenAIConnection(openAIKey);
+      return await ttsService.testConnection(openAIKey);
     } catch {
       return false;
     }

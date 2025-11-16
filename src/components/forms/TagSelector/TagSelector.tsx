@@ -1,6 +1,6 @@
 import React from 'react';
 import { FormControl, TextField, Autocomplete } from '@mui/material';
-import { FormComponentProps } from '../../../types';
+import { FormComponentProps } from '../../../shared';
 
 interface TagSelectorProps extends FormComponentProps {
   value: string[];

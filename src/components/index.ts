@@ -1,7 +1,6 @@
 // UI Components
-export * from './ui/NoteCard';
-export { default as NoteCardModern } from './ui/NoteCardModern';
-export { default as FeedbackSystem, useFeedback } from './ui/FeedbackSystem';
+export { default as NoteCard } from './NoteCard';
+export { default as FeedbackSystem, useFeedback } from './FeedbackSystem';
 
 // Form Components
 export * from './forms/DeckSelector';

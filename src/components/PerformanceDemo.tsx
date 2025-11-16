@@ -11,14 +11,13 @@ import {
   NoteCardMemo,
   OptimizedForm,
   LoadingSkeleton,
-  CardListSkeleton,
 } from '../components';
 import {
   usePerformanceMonitor,
   useDebouncedSearch,
   useShallowMemo,
 } from '../hooks';
-import { Note } from '../types';
+import { Note } from '../shared';
 
 interface PerformanceDemoProps {
   notes: Note[];
@@ -123,7 +122,7 @@ const PerformanceDemo = memo<PerformanceDemoProps>(({
       <Container maxWidth="md">
         <LoadingSkeleton type="text" height={40} width="60%" />
         <Box sx={{ mt: 2 }}>
-          <CardListSkeleton />
+          <LoadingSkeleton type="card" count={3} />
         </Box>
       </Container>
     );

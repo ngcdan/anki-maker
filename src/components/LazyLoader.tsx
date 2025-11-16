@@ -33,14 +33,13 @@ const LazyWrapper = ({
 };
 
 // Lazy loaded components
-export const LazyApp = lazy(() => import('../pages/app/App'));
 export const LazySettings = lazy(() => import('../pages/Settings'));
 export const LazyHome = lazy(() => import('../pages/Home'));
 export const LazyPerformanceDemo = lazy(() => import('./PerformanceDemo'));
 
 // Optimized imports with chunk names
 const LazyAppWithChunk = lazy(() =>
-  import(/* webpackChunkName: "app" */ '../pages/app/App')
+  import(/* webpackChunkName: "app" */ '../pages/App')
 );
 
 const LazySettingsWithChunk = lazy(() =>
@@ -81,7 +80,7 @@ export const routeComponents = {
   },
   app: {
     component: LazyAppWithChunk,
-    preload: () => import(/* webpackChunkName: "app" */ '../pages/app/App'),
+    preload: () => import(/* webpackChunkName: "app" */ '../pages/App'),
   },
   settings: {
     component: LazySettingsWithChunk,

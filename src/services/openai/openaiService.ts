@@ -1,6 +1,6 @@
-import { ENDPOINTS, ERROR_MESSAGES } from '../../constants';
-import { SuggestOptions, Note, ExtractedSections } from '../../types';
-import { messages } from '../../vocab_prompt';
+import { ENDPOINTS, ERROR_MESSAGES } from '../../shared';
+import { SuggestOptions, Note, ExtractedSections } from '../../shared';
+import { messages } from '../../prompts/vocab_prompt';
 
 class OpenAIService {
   private extractSections(markdown: string, prompt: string): ExtractedSections {

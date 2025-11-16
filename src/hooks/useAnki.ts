@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { QUERY_KEYS, ERROR_MESSAGES } from '../constants';
-import { Note } from '../types';
+import { QUERY_KEYS, ERROR_MESSAGES } from '../shared';
+import { Note } from '../shared';
 
 // Import services (sẽ tạo sau)
 import { ankiService } from '../services/anki';

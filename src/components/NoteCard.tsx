@@ -9,10 +9,10 @@ import {
 } from '@mui/icons-material';
 import { marked } from 'marked';
 
-import { Note } from '../../types';
-import { useAddNote, useTTS } from '../../hooks';
-import { OpenAIKeyContext } from '../../OpenAIKeyContext';
-import { useAppTheme, gradients } from '../../theme';
+import { Note } from '../shared';
+import { useAddNote, useTTS } from '../hooks';
+import { OpenAIKeyContext } from '../contexts/OpenAIKeyContext';
+import { useAppTheme, gradients } from '../theme';
 
 interface NoteCardModernProps {
   note: Note;
@@ -620,6 +620,6 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
   );
 });
 
-NoteCardModern.displayName = 'NoteCardModern';
+NoteCardModern.displayName = 'NoteCard';
 
 export default NoteCardModern;

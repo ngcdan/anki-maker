@@ -4,11 +4,11 @@ import { RouterProvider, createBrowserRouter, Link } from 'react-router-dom'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { AppBar, Toolbar, Typography, Container, IconButton, Box, CircularProgress } from '@mui/material';
 import { Brightness4, Brightness7 } from '@mui/icons-material';
-import OpenAIKeyContextProvider from './OpenAIKeyContext';
+import OpenAIKeyContextProvider from './contexts/OpenAIKeyContext';
 import { ErrorBoundary, ToastProvider } from './components/layout';
 import { RouterOutlet } from './components/RouterOutlet';
 import { RouterErrorBoundary } from './components/RouterErrorBoundary';
-import { createQueryClient } from './config/queryClient';
+import { createQueryClient } from './shared';
 import { ThemeProvider, useAppTheme } from './theme';
 import {
   LazyHomeWithChunk as Home,
@@ -16,11 +16,7 @@ import {
 } from './components/LazyLoader';
 
 // Create lazy loading for app components
-const AppModern = React.lazy(() => import('./pages/app/AppModern'));
-const AppSimple = React.lazy(() => import('./pages/app/AppSimple'));
-const App = React.lazy(() => import('./pages/app/App'));
-const TestAnkiFormat = React.lazy(() => import('./pages/TestAnkiFormat'));
-const CompareNotecards = React.lazy(() => import('./pages/CompareNotecards'));
+const AppModern = React.lazy(() => import('./pages/App'));
 
 function Navigation() {
   const { mode, toggleMode } = useAppTheme();
@@ -140,19 +136,7 @@ const router = createBrowserRouter([
       },
       {
         path: "app",
-        element: <App />,
-      },
-      {
-        path: "simple",
-        element: <AppSimple />,
-      },
-      {
-        path: "test",
-        element: <TestAnkiFormat />,
-      },
-      {
-        path: "compare",
-        element: <CompareNotecards />,
+        element: <AppModern />,
       },
     ],
   },
