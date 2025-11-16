@@ -79,8 +79,6 @@ function extractSections(markdown: string, prompt: string) {
 
 export async function suggestAnkiNotes(
   openAIKey: string, { deckName, modelName, prompt }: Options, _notes: Note[]): Promise<any> {
-  console.log('-------------- suggestAnkiNotes ----------------');
-
   const body = {
     model: 'gpt-4o-mini',
     messages: [
@@ -130,7 +128,7 @@ export async function suggestAnkiNotes(
       Back: sections.back,
       Audio: sections.audio,
     },
-    tags: [] // Luôn trả về empty tags
+    tags: []
   }];
 }
 

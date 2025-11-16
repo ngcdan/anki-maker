@@ -35,6 +35,7 @@ import { fetchDecks, addNote } from '../../anki';
 import { suggestAnkiNotes } from '../../openai';
 import { OpenAIKeyContext } from '../../OpenAIKeyContext';
 import { useContext } from 'react';
+import { marked } from 'marked';
 
 import { DEFAULT_SETTINGS } from '../../constants';
 import { useAppTheme, gradients } from '../../theme';
@@ -244,11 +245,18 @@ function App() {
 
   const handleCreateCard = async (note: Note) => {
     try {
+      // Convert markdown to HTML for Front/Back before adding
+      const convertedFields = {
+        ...note.fields,
+        Front: note.fields.Front ? marked.parse(note.fields.Front) : note.fields.Front,
+        Back: note.fields.Back ? marked.parse(note.fields.Back) : note.fields.Back,
+      };
+
       // Convert Note to addNote format
       const ankiNote = {
         modelName: note.modelName,
         deckName: note.deckName,
-        fields: note.fields,
+        fields: convertedFields,
         tags: note.tags,
       };
 

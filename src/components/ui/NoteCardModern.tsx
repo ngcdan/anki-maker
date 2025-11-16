@@ -35,7 +35,7 @@ import {
 import { marked } from 'marked';
 
 import { Note } from '../../types';
-import { useAddNote, useTTS } from '../../hooks';
+import { useTTS } from '../../hooks';
 import { OpenAIKeyContext } from '../../OpenAIKeyContext';
 import { useAppTheme, gradients } from '../../theme';
 
@@ -58,14 +58,13 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
   const { mode } = useAppTheme();
   const [currentNote, setCurrentNote] = useState(note);
   const [expanded, setExpanded] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
+  const [showPreview, setShowPreview] = useState(true); // Mặc định hiển thị preview
   const [copied, setCopied] = useState<string | null>(null);
 
   // Original NoteCard hooks
-  const { mutate: addNote, isLoading } = useAddNote();
-  // Không cần fetch allTags nữa vì không hiển thị gợi ý
+  // Không gọi addNote tại đây nữa để tránh tạo trùng
   const { openAIKey } = useContext(OpenAIKeyContext);
-  const { generateAudio, createAnkiAudioFile, isGenerating } = useTTS();
+  const { generateAudio, isGenerating } = useTTS();
 
   const { modelName, deckName, fields, trashed, created } = currentNote;
 
@@ -100,13 +99,13 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
   }, [created, trashed, theme]);
 
   const isDisabled = useMemo(() => {
-    return created || trashed || isLoading;
-  }, [created, trashed, isLoading]);
+    return created || trashed || isGenerating;
+  }, [created, trashed, isGenerating]);
 
   // Chỉ disable khi đang loading, cho phép edit trong mọi trạng thái khác
   const isFieldDisabled = useMemo(() => {
-    return isLoading || isGenerating;
-  }, [isLoading, isGenerating]);
+    return isGenerating;
+  }, [isGenerating]);
 
   // Original NoteCard handlers
   const handleFieldChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -121,47 +120,8 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
 
 
   const handleAddNote = async () => {
-    try {
-      const audioTexts = currentNote.fields.Audio || '';
-      let fields = currentNote.fields;
-
-      // Convert markdown to HTML
-      const updateFields = {
-        ...fields,
-        Front: marked.parse(fields.Front),
-        Back: marked.parse(fields.Back),
-      };
-
-      let migrateNote: any = { ...currentNote, fields: updateFields };
-
-      // Handle TTS audio generation with OpenAI
-      if (audioTexts && openAIKey) {
-        const audioResponse = await generateAudio(audioTexts, openAIKey, {
-          voice: 'alloy',
-          speed: 1.0,
-          model: 'tts-1',
-        });
-
-        if (audioResponse) {
-          const audioFile = createAnkiAudioFile(
-            audioResponse.audioBuffer,
-            audioResponse.fileName
-          );
-          migrateNote.audio = [audioFile];
-        }
-      }
-
-      addNote(migrateNote, {
-        onSuccess: () => {
-          onCreate();
-        },
-        onError: (error) => {
-          console.error('Error adding note:', error);
-        },
-      });
-    } catch (error) {
-      console.error('Error adding note:', error);
-    }
+    // Không tự gọi addNote tại đây. Ủy quyền cho parent xử lý thêm thẻ.
+    onCreate();
   };
 
   // Enhanced handlers
@@ -633,7 +593,7 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
                   onClick={handleAddNote}
                   disabled={isDisabled}
                   startIcon={
-                    (isLoading || isGenerating) ? (
+                    isGenerating ? (
                       <CircularProgress size={16} color="inherit" />
                     ) : (
                       <Add />
@@ -650,7 +610,7 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
                     },
                   }}
                 >
-                  {isGenerating ? 'Tạo audio...' : isLoading ? 'Đang thêm...' : 'Tạo thẻ'}
+                  {isGenerating ? 'Tạo audio...' : 'Tạo thẻ'}
                 </Button>
               </>
             )}
