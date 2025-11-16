@@ -1,100 +1,139 @@
 # Anki Maker AI Coding Instructions
 
 ## Project Overview
-Frontend-only React app that generates Anki flashcards from user prompts using OpenAI GPT. Integrates with local Anki desktop via AnkiConnect plugin and optional TTS service for audio generation.
+Frontend-only React app that generates Anki flashcards from user prompts using OpenAI GPT.
+Integrates with local Anki desktop via AnkiConnect plugin and optional TTS service for audio generation.
 
 ## Architecture & Key Components
 
 ### Core Data Flow
-1. **User Input** → `Home.tsx` (entry point) → `App.tsx` (main card creation interface)
-2. **AI Generation** → `openai.ts` (GPT API calls) → `vocab_prompt.ts`/`default_prompt.ts` (prompt templates)
-3. **Anki Integration** → `anki.ts` (AnkiConnect API) → Local Anki desktop app (port 8765)
-4. **State Management** → React Query for server state, Context API for OpenAI key, `useLocalStorage.tsx` for persistence
+1. **User Entry** → `Home.tsx` (landing + bookmarklet) → `/suggest` route → `AppModern.tsx` (main app)
+2. **AI Generation** → `useOpenAI` hook → `services/openai/openaiService.ts` → `prompts/vocab_prompt.ts` template
+3. **Anki Integration** → `useAnki` hooks → `services/anki/ankiService.ts` → AnkiConnect (`localhost:8765`) → Local Anki desktop
+4. **State Management** → React Query (server state) + Context API (OpenAI key) + `hooks/useLocalStorage` (user preferences)### Critical Integration Points
+- **AnkiConnect**: Must be running on `localhost:8765` - all card operations fail without it
+- **TTS Service**: Uses OpenAI TTS API (`/v1/audio/speech`) - requires same OpenAI key as GPT
+- **OpenAI API**: Key managed via `contexts/OpenAIKeyContext.tsx`, used for both GPT and TTS, stored in localStorage
+- **Bookmarklet**: Browser extension for text selection → direct navigation with `?prompt=` param
 
-### Critical Dependencies
-- **AnkiConnect**: Must be running on `localhost:8765` for card creation
-- **TTS Service**: Optional external service on `localhost:3000/dev/chatbot/tts/api` for audio
-- **OpenAI API**: Key stored in localStorage via `OpenAIKeyContext.tsx`
+### Modern Architecture (Services Layer)
+```typescript
+// Modern services layer - all API operations consolidated
+src/services/
+├── anki/
+│   ├── ankiService.ts    // Class-based AnkiConnect wrapper
+│   └── index.ts         // Export ankiService
+├── openai/
+│   ├── openaiService.ts // OpenAI API with streaming
+│   ├── ttsService.ts    // Audio generation service
+│   └── index.ts         // Export services
+└── index.ts            // Main services export
 
-### Note Structure Convention
+// AI Prompt Templates
+src/prompts/
+├── vocab_prompt.ts      // Vietnamese English learners
+└── index.ts            // Export prompts
+
+// React Context & Shared Utilities
+src/contexts/            // React context providers (OpenAI key)
+src/shared/              // Consolidated utilities (types, constants, utils)
+src/hooks/               // Custom React hooks (useAnki, useOpenAI, etc.)
+src/__tests__/           // All test files
+```
+
+### Note Structure (Basic_cloze Model)
 ```typescript
 interface Note {
-  modelName: string;        // Anki card model type
-  deckName: string;         // Target Anki deck
-  fields: {                 // Card content
-    Front: string;          // Question side (markdown → HTML)
-    Back: string;           // Answer side (markdown → HTML)
-    Question: string;       // Alternative field name
-    Ans: string;            // Alternative field name
-    Audio?: string;         // Text for TTS generation
+  modelName: "Basic_cloze";     // Fixed model type
+  deckName: string;             // Target Anki deck
+  fields: {
+    Front: string;              // Context + explanation (markdown → HTML)
+    Question: string;           // Cloze deletion: "{{c1::answer}}"
+    Ans: string;               // Plain text answer
+    Back: string;              // Detailed analysis + examples
+    Audio?: string;            // Text for TTS generation
   };
-  tags: string[];           // Anki tags
-  key: string;              // Unique identifier
-  trashed?: boolean;        // User rejected
-  created?: boolean;        // Successfully added to Anki
+  tags: string[];
+  key: string;                 // Unique ID for deduplication
+  trashed?: boolean;           // User rejected this card
+  created?: boolean;           // Successfully added to Anki
 }
 ```
 
 ## Development Workflows
 
-### Local Development
+### Setup & Commands
 ```bash
-pnpm dev                  # Start dev server
-pnpm build               # TypeScript compile + build
-pnpm lint                # ESLint check
-pnpm preview             # Preview production build
+pnpm dev                    # Vite dev server
+pnpm build                  # TypeScript + Vite build
+pnpm lint                   # ESLint check
+pnpm preview               # Test production build
 ```
 
-### Testing with Vitest
-- Use MSW for mocking AnkiConnect API calls (see `anki.test.ts`)
-- Tests require `jsdom` environment for React components
-- Setup file: `tests/setup.js`
+### Testing Strategy (API-focused)
+- **Focus**: Only test external API integrations (Anki, OpenAI)
+- **MSW**: Mock AnkiConnect API calls (see `anki.test.ts` pattern)
+- **Setup**: `tests/setup.js` configures testing-library matchers for API tests
+- **Test Location**: All tests consolidated in `src/__tests__/` directory
+- **Pattern**: Mock external services, test data transformations, avoid UI component tests
 
-### Environment Setup
-1. Install Anki desktop app + AnkiConnect plugin
-2. Set OpenAI API key in Settings or `.env` as `OPENAI_API_KEY`
-3. For audio: Configure TTS service endpoint in `App.tsx` (hardcoded path)
+### Environment Requirements
+1. **Anki Desktop** + **AnkiConnect plugin** (essential for functionality)
+2. **OpenAI API key** - via Settings UI or `.env` file as `OPENAI_API_KEY` (used for both GPT and TTS)
 
 ## Project-Specific Patterns
 
-### State Management
-- **React Query**: All external API calls (Anki, OpenAI)
-- **Context + useLocalStorage**: OpenAI key persistence
-- **Component State**: Form inputs and UI interactions
+### State Management Layers
+- **React Query**: External APIs (Anki, OpenAI) with caching/retries
+- **Context API**: OpenAI key + theme state
+- **useLocalStorage**: User preferences (deck, tags) with automatic persistence (located in `hooks/`)
+- **Component State**: Form inputs, UI interactions, pending notes list
 
-### API Integration
-- **AnkiConnect**: JSON-RPC over HTTP to `localhost:8765`
-- **OpenAI**: Direct API calls with streaming support
-- **Error Handling**: Network errors bubble up from `ankiConnect()` wrapper
+### Prompt Engineering Architecture
+- **prompts/vocab_prompt.ts**: Vietnamese English learners (A2 level) - conversation-based cards
+- **System Context**: Includes user's previous card decisions (created/trashed) to improve suggestions
 
-### Prompt Engineering
-- `vocab_prompt.ts`: Specialized for Vietnamese English learners (A2 level)
-- `default_prompt.ts`: General card creation with user feedback integration
-- System prompts include user's previous card decisions (created/trashed)
+### Data Processing Pipeline
+1. User prompt → OpenAI streaming API → Raw markdown response
+2. Parse markdown → Extract sections (Front, Question, Ans, Back, Audio)
+3. Markdown → HTML conversion via `marked` library
+4. Optional: Audio text → TTS service → File attachment to Anki media folder
+5. Note object → AnkiConnect JSON-RPC → Anki desktop app
 
-### Card Processing Pipeline
-1. Raw user prompt → OpenAI API call
-2. AI response → Parse into Note objects
-3. Markdown fields → HTML conversion via `marked`
-4. Optional: Audio text → TTS service → File attachment
-5. Final Note → AnkiConnect → Anki desktop
+### Component Architecture Patterns
+- **Lazy Loading**: `LazyLoader.tsx` with React.lazy() for code splitting
+- **Error Boundaries**: `RouterErrorBoundary.tsx` + `ErrorBoundary.tsx`
+- **Material-UI**: Consistent theming via `ThemeProvider.tsx`
+- **Custom Hooks**: Business logic extracted to `src/hooks/` (useAnki, useOpenAI, useNoteManagement)
 
 ## Key Files for Common Tasks
 
-- **Add new card types**: Modify `Note` interface + `App.tsx` form fields
-- **Change AI behavior**: Edit prompt templates in `*_prompt.ts` files
-- **Anki integration**: All functions in `anki.ts` (add/modify AnkiConnect calls)
-- **UI components**: Material-UI based, main logic in `App.tsx`
-- **Routing**: Simple React Router setup in `main.tsx`
+### Adding New Features
+- **New card types**: `src/shared/types.ts` + `docs/anki-basic-cloze-format.md` (comprehensive format spec)
+- **AI behavior**: Edit prompt templates in `prompts/vocab_prompt.ts` + modify parsing in `services/openai/openaiService.ts`
+- **Anki operations**: Extend `ankiService.ts` class methods
+- **UI components**: Material-UI based, main logic in `AppModern.tsx`, organized in `src/components/` with index exports
 
-## External Dependencies & Integration Points
+### Configuration & Constants
+- **Shared utilities**: `src/shared/` (constants, types, utils, queryClient)
+- **Custom hooks**: `src/hooks/` (includes useLocalStorage)
+- **Tests**: `src/__tests__/` (all test files)
 
-- **AnkiConnect Plugin**: Required for Anki desktop integration
-- **TTS Service**: Optional, hardcoded to specific localhost endpoint
-- **OpenAI API**: Rate limits and token usage considerations
-- **Bookmarklet**: Browser integration for quick text selection (see `Home.tsx`)
+## External Dependencies & Gotchas
 
-## Testing Strategy
-- Mock external services (AnkiConnect, OpenAI) with MSW
-- Focus on data transformation and state management
-- Component testing with React Testing Library setup
+### AnkiConnect Integration
+- **Port**: Always `localhost:8765` (AnkiConnect standard)
+- **Error handling**: Network failures vs. AnkiConnect API errors handled differently
+- **Required plugin**: Must be installed and enabled in Anki desktop
+
+### TTS Service (OpenAI TTS API)
+- **Service**: OpenAI TTS API (`/v1/audio/speech`)
+- **Authentication**: Uses same OpenAI API key as GPT models
+- **Optional feature**: App works without audio generation, gracefully degrades
+- **Audio format**: MP3 files generated and embedded directly in Anki cards
+
+### Browser Integration
+- **Bookmarklet**: `Home.tsx` contains browser bookmarklet for text selection
+- **URL params**: `?prompt=` parameter for direct navigation to card creation via `/suggest` route
+- **Routing**: `Home.tsx` (landing) → `/suggest` or `/app` → `AppModern.tsx` (unified main app)
+- **CORS**: Frontend-only, relies on external services accepting requests

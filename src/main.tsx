@@ -1,22 +1,22 @@
-import React from 'react'
+import React, { Suspense } from 'react'
 import ReactDOM from 'react-dom/client'
-import { Outlet, RouterProvider, createBrowserRouter, Link } from 'react-router-dom'
+import { RouterProvider, createBrowserRouter, Link } from 'react-router-dom'
 import { QueryClientProvider } from '@tanstack/react-query'
-import { AppBar, Toolbar, Typography, Container, IconButton, Box } from '@mui/material';
+import { AppBar, Toolbar, Typography, Container, IconButton, Box, CircularProgress } from '@mui/material';
 import { Brightness4, Brightness7 } from '@mui/icons-material';
-import OpenAIKeyContextProvider from './OpenAIKeyContext';
-import { ErrorBoundary, ToastProvider } from './components';
-import { createQueryClient } from './config/queryClient';
+import OpenAIKeyContextProvider from './contexts/OpenAIKeyContext';
+import { ErrorBoundary, ToastProvider } from './components/layout';
+import { RouterOutlet } from './components/RouterOutlet';
+import { RouterErrorBoundary } from './components/RouterErrorBoundary';
+import { createQueryClient } from './shared';
 import { ThemeProvider, useAppTheme } from './theme';
 import {
   LazyHomeWithChunk as Home,
   LazySettingsWithChunk as Settings
 } from './components/LazyLoader';
-import AppModern from './AppModern';
-import AppSimple from './AppSimple';
-import App from './App';
-import TestAnkiFormat from './TestAnkiFormat';
-import CompareNotecards from './CompareNotecards';
+
+// Create lazy loading for app components
+const AppModern = React.lazy(() => import('./pages/App'));
 
 function Navigation() {
   const { mode, toggleMode } = useAppTheme();
@@ -78,6 +78,27 @@ function Navigation() {
   );
 }
 
+// Loading component for Suspense fallback
+function PageLoading() {
+  return (
+    <Box
+      sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '50vh',
+        flexDirection: 'column',
+        gap: 2,
+      }}
+    >
+      <CircularProgress size={40} />
+      <Typography variant="body2" color="text.secondary">
+        Đang tải...
+      </Typography>
+    </Box>
+  );
+}
+
 function Root() {
   return (
     <ErrorBoundary>
@@ -85,7 +106,9 @@ function Root() {
         <OpenAIKeyContextProvider>
           <Navigation />
           <Container maxWidth="xl" sx={{ mt: 3, mb: 4 }}>
-            <Outlet />
+            <Suspense fallback={<PageLoading />}>
+              <RouterOutlet />
+            </Suspense>
           </Container>
         </OpenAIKeyContextProvider>
       </ToastProvider>
@@ -97,6 +120,7 @@ const router = createBrowserRouter([
   {
     path: "/",
     element: <Root />,
+    errorElement: <RouterErrorBoundary />,
     children: [
       {
         path: "",
@@ -112,23 +136,7 @@ const router = createBrowserRouter([
       },
       {
         path: "app",
-        element: <App />,
-      },
-      {
-        path: "simple",
-        element: <AppSimple />,
-      },
-      {
-        path: "modern",
         element: <AppModern />,
-      },
-      {
-        path: "test",
-        element: <TestAnkiFormat />,
-      },
-      {
-        path: "compare",
-        element: <CompareNotecards />,
       },
     ],
   },

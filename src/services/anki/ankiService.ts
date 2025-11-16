@@ -1,5 +1,5 @@
-import { ENDPOINTS, ANKI_CONNECT_VERSION, ERROR_MESSAGES } from '../../constants';
-import { AnkiConnectRequest, AnkiConnectResponse, Note } from '../../types';
+import { ENDPOINTS, ANKI_CONNECT_VERSION, ERROR_MESSAGES } from '../../shared';
+import { AnkiConnectRequest, AnkiConnectResponse, Note } from '../../shared';
 
 class AnkiService {
   private async ankiConnect<T = any>(params: Omit<AnkiConnectRequest, 'version'>): Promise<T> {

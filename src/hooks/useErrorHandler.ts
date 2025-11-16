@@ -1,5 +1,5 @@
-import { useToast } from '../components/ToastProvider';
-import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '../constants';
+import { useToast } from '../components/layout/ToastProvider';
+import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '../shared';
 
 export interface UseErrorHandlerReturn {
   handleError: (error: unknown, context?: string) => void;
@@ -25,7 +25,7 @@ export const useErrorHandler = (): UseErrorHandlerReturn => {
       } else if (error.message.includes('network') || error.message.includes('fetch')) {
         errorMessage = ERROR_MESSAGES.NETWORK;
       } else if (error.message.includes('TTS')) {
-        errorMessage = ERROR_MESSAGES.TTS_SERVICE;
+        errorMessage = ERROR_MESSAGES.OPENAI_TTS;
       } else if (error.message.includes('audio')) {
         errorMessage = ERROR_MESSAGES.AUDIO_GENERATION;
       } else if (error.message.includes('parsing') || error.message.includes('JSON')) {

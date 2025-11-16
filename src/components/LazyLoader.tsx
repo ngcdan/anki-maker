@@ -33,22 +33,21 @@ const LazyWrapper = ({
 };
 
 // Lazy loaded components
-export const LazyApp = lazy(() => import('../App'));
-export const LazySettings = lazy(() => import('../Settings'));
-export const LazyHome = lazy(() => import('../Home'));
+export const LazySettings = lazy(() => import('../pages/Settings'));
+export const LazyHome = lazy(() => import('../pages/Home'));
 export const LazyPerformanceDemo = lazy(() => import('./PerformanceDemo'));
 
 // Optimized imports with chunk names
-export const LazyAppWithChunk = lazy(() =>
-  import(/* webpackChunkName: "app" */ '../App')
+const LazyAppWithChunk = lazy(() =>
+  import(/* webpackChunkName: "app" */ '../pages/App')
 );
 
-export const LazySettingsWithChunk = lazy(() =>
-  import(/* webpackChunkName: "settings" */ '../Settings')
+const LazySettingsWithChunk = lazy(() =>
+  import(/* webpackChunkName: "settings" */ '../pages/Settings')
 );
 
-export const LazyHomeWithChunk = lazy(() =>
-  import(/* webpackChunkName: "home" */ '../Home')
+const LazyHomeWithChunk = lazy(() =>
+  import(/* webpackChunkName: "home" */ '../pages/Home')
 );
 
 export const LazyPerformanceDemoWithChunk = lazy(() =>
@@ -77,15 +76,15 @@ export const preloadComponent = (componentImporter: () => Promise<any>) => {
 export const routeComponents = {
   home: {
     component: LazyHomeWithChunk,
-    preload: () => import(/* webpackChunkName: "home" */ '../Home'),
+    preload: () => import(/* webpackChunkName: "home" */ '../pages/Home'),
   },
   app: {
     component: LazyAppWithChunk,
-    preload: () => import(/* webpackChunkName: "app" */ '../App'),
+    preload: () => import(/* webpackChunkName: "app" */ '../pages/App'),
   },
   settings: {
     component: LazySettingsWithChunk,
-    preload: () => import(/* webpackChunkName: "settings" */ '../Settings'),
+    preload: () => import(/* webpackChunkName: "settings" */ '../pages/Settings'),
   },
   performanceDemo: {
     component: LazyPerformanceDemoWithChunk,
@@ -94,3 +93,4 @@ export const routeComponents = {
 };
 
 export default LazyWrapper;
+export { LazyHomeWithChunk, LazySettingsWithChunk, LazyAppWithChunk };
