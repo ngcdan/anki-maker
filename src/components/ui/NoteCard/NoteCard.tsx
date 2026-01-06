@@ -8,8 +8,11 @@ import {
   Button,
   Autocomplete,
   CircularProgress,
+  Box,
+  Typography,
+  Tabs,
+  Tab,
 } from '@mui/material';
-import { marked } from 'marked';
 
 import { Note } from '../../../types';
 import { useAddNote, useTags, useTTS } from '../../../hooks';
@@ -23,6 +26,7 @@ interface NoteCardProps {
 
 export const NoteCard: React.FC<NoteCardProps> = ({ note, onTrash, onCreate }) => {
   const [currentNote, setCurrentNote] = useState(note);
+  const [previewTab, setPreviewTab] = useState(0);
   const { mutate: addNote, isLoading } = useAddNote();
   const { data: allTags } = useTags();
   const { openAIKey } = useContext(OpenAIKeyContext);
@@ -51,11 +55,12 @@ export const NoteCard: React.FC<NoteCardProps> = ({ note, onTrash, onCreate }) =
       const audioTexts = currentNote.fields.Audio || '';
       let fields = currentNote.fields;
 
-      // Convert markdown to HTML
+      // The fields already contain styled HTML from addAnkiStyling, no need to parse markdown
       const updateFields = {
         ...fields,
-        Front: marked.parse(fields.Front),
-        Back: marked.parse(fields.Back),
+        // Keep the styled HTML as-is for Front and Back
+        Front: fields.Front,
+        Back: fields.Back,
       };
 
       let migrateNote: any = { ...currentNote, fields: updateFields };
@@ -121,21 +126,15 @@ export const NoteCard: React.FC<NoteCardProps> = ({ note, onTrash, onCreate }) =
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                label="Front"
+                label="Front (Preview)"
                 defaultValue={fields.Front}
                 multiline
+                rows={6}
                 name="Front"
                 onChange={handleFieldChange}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Question"
-                defaultValue={fields.Question}
-                multiline
-                name="Question"
-                onChange={handleFieldChange}
+                InputProps={{
+                  style: { fontFamily: 'monospace', fontSize: '0.875rem' }
+                }}
               />
             </Grid>
             <Grid item xs={12}>
@@ -151,11 +150,15 @@ export const NoteCard: React.FC<NoteCardProps> = ({ note, onTrash, onCreate }) =
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                label="Back"
+                label="Back (Preview)"
                 defaultValue={fields.Back}
                 multiline
+                rows={6}
                 name="Back"
                 onChange={handleFieldChange}
+                InputProps={{
+                  style: { fontFamily: 'monospace', fontSize: '0.875rem' }
+                }}
               />
             </Grid>
             {fields.Audio && (
@@ -170,6 +173,47 @@ export const NoteCard: React.FC<NoteCardProps> = ({ note, onTrash, onCreate }) =
                 />
               </Grid>
             )}
+
+            {/* Preview Section */}
+            <Grid item xs={12}>
+              <Box sx={{ borderTop: 1, borderColor: 'divider', pt: 2 }}>
+                <Tabs value={previewTab} onChange={(_, newValue) => setPreviewTab(newValue)}>
+                  <Tab label="Preview Front" />
+                  <Tab label="Preview Back" />
+                </Tabs>
+
+                <Box sx={{ mt: 2, p: 2, border: 1, borderColor: 'divider', borderRadius: 1 }}>
+                  {previewTab === 0 && (
+                    <Box>
+                      <Typography variant="h6" gutterBottom>Front Preview:</Typography>
+                      <Box
+                        dangerouslySetInnerHTML={{ __html: currentNote.fields.Front }}
+                        sx={{
+                          '& .vocab-card': {
+                            maxWidth: '100%',
+                            margin: 0
+                          }
+                        }}
+                      />
+                    </Box>
+                  )}
+                  {previewTab === 1 && (
+                    <Box>
+                      <Typography variant="h6" gutterBottom>Back Preview:</Typography>
+                      <Box
+                        dangerouslySetInnerHTML={{ __html: currentNote.fields.Back }}
+                        sx={{
+                          '& .vocab-card': {
+                            maxWidth: '100%',
+                            margin: 0
+                          }
+                        }}
+                      />
+                    </Box>
+                  )}
+                </Box>
+              </Box>
+            </Grid>
           </Grid>
         </CardContent>
         <CardActions>

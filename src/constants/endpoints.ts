@@ -1,8 +1,13 @@
 export const ENDPOINTS = {
   ANKI_CONNECT: 'http://localhost:8765',
   TTS_SERVICE: 'http://localhost:3000/dev/chatbot/tts/api',
-  OPENAI_API: 'https://api.openai.com/v1/chat/completions',
-  OPENAI_TTS: 'https://api.openai.com/v1/audio/speech',
+  // Use proxy in development to avoid CORS issues
+  OPENAI_API: import.meta.env.DEV
+    ? '/api/openai/v1/chat/completions'
+    : 'https://api.openai.com/v1/chat/completions',
+  OPENAI_TTS: import.meta.env.DEV
+    ? '/api/openai/v1/audio/speech'
+    : 'https://api.openai.com/v1/audio/speech',
 } as const;
 
 export const ANKI_CONNECT_VERSION = 6;

@@ -3,7 +3,6 @@ import { selectOptimalModel, estimateTokens } from '../../constants/aiConfig';
 import { logPerformance } from '../../constants/performance';
 import { SuggestOptions, Note, ExtractedSections } from '../../types';
 import { messages } from '../../vocab_prompt';
-import { optimizedMessages } from '../../vocab_prompt_optimized';
 import { responseCache } from '../../utils/responseCache';
 
 class OpenAIService {
@@ -14,7 +13,7 @@ class OpenAIService {
     _notes: Note[]
   ): AsyncGenerator<{ content: string; isComplete: boolean; note?: Note[] }> {
     try {
-      const promptTokens = estimateTokens(prompt + JSON.stringify(optimizedMessages));
+      const promptTokens = estimateTokens(prompt + JSON.stringify(messages));
       const complexity = promptTokens > 1000 ? 'complex' : promptTokens > 500 ? 'medium' : 'simple';
       const selectedModel = selectOptimalModel(complexity);
 
@@ -27,7 +26,7 @@ class OpenAIService {
         return;
       }
 
-      const selectedMessages = complexity === 'simple' ? optimizedMessages : messages;
+      const selectedMessages = messages;
 
       const response = await fetch(ENDPOINTS.OPENAI_API, {
         method: 'POST',
@@ -102,12 +101,14 @@ class OpenAIService {
   private buildNoteFromSections(sections: ExtractedSections, options: SuggestOptions): Note[] {
     const { deckName, modelName, tags } = options;
 
-    if (sections.audio.length === 0) {
-      throw new Error(ERROR_MESSAGES.AUDIO_GENERATION);
+    // Validate required fields
+    if (!sections.front && !sections.back) {
+      throw new Error('Không thể trích xuất nội dung thẻ từ phản hồi AI');
     }
 
-    const answer: string = sections.ans;
-    const hiddenAnswerAtFront: string = sections.front.replace(answer, '[...]');
+    const answer: string = sections.ans || '';
+    const front = sections.front || 'Nội dung phía trước';
+    const hiddenAnswerAtFront: string = answer ? front.replace(answer, '[...]') : front;
 
     return [
       {
@@ -116,10 +117,9 @@ class OpenAIService {
         modelName,
         fields: {
           Front: hiddenAnswerAtFront,
-          Question: `{{c1::${sections.ans}}}`,
-          Ans: sections.ans,
-          Back: sections.back,
-          Audio: sections.audio,
+          Ans: answer,
+          Back: sections.back || 'Nội dung phía sau',
+          Audio: sections.audio || '',
         },
         tags,
       },
@@ -134,44 +134,71 @@ class OpenAIService {
       back: '',
     };
 
-    // Extract Front section (từ đầu đến Meaning)
-    const frontMatch = markdown.match(/\*\*Word:\*\*.*?(?=\n---)/s);
+    // Extract Front section (between FRONT_START and FRONT_END)
+    const frontMatch = markdown.match(/=== FRONT_START ===(.*?)=== FRONT_END ===/s);
     if (frontMatch) {
-      sections.front = frontMatch[0].trim();
+      sections.front = frontMatch[1].trim();
     }
 
-    // Extract Audio section (các câu hội thoại)
-    const conversationMatch = markdown.match(/\*\*Conversation:\*\*\n(.*?)(?=\n\*\*Meaning:\*\*)/s);
-    if (conversationMatch) {
-      const conversationText = conversationMatch[1];
-      let answer = '';
-
-      // Process audio lines
-      sections.audio = conversationText
-        .split('\n')
-        .map(line => line.trim())
-        .filter(line => line.startsWith('- '))
-        .map(line => {
-          // Remove speaker name and colon (e.g., "Jake: ")
-          const processedLine = line.substring(line.indexOf(':') + 1).trim();
-
-          // Extract answer if line contains keyword
-          if (processedLine.toLowerCase().includes(prompt.toLowerCase())) {
-            answer = processedLine;
-          }
-
-          // Add SSML break tag at the end
-          return processedLine + ' <break time="0.4s"/>';
-        })
-        .join('\n');
-
-      sections.ans = answer;
-    }
-
-    // Extract Back section (phần Analysis trở đi)
-    const backMatch = markdown.match(/\*\*Analysis\*\*[\s\S]*$/);
+    // Extract Back section (between BACK_START and BACK_END)
+    const backMatch = markdown.match(/=== BACK_START ===(.*?)=== BACK_END ===/s);
     if (backMatch) {
-      sections.back = backMatch[0].trim();
+      sections.back = backMatch[1].trim();
+    }
+
+    // Extract Audio section (between AUDIO_START and AUDIO_END)
+    const audioMatch = markdown.match(/=== AUDIO_START ===(.*?)=== AUDIO_END ===/s);
+    if (audioMatch) {
+      sections.audio = audioMatch[1].trim();
+    }
+
+    // Extract Ans section (between ANS_START and ANS_END)
+    const ansMatch = markdown.match(/=== ANS_START ===(.*?)=== ANS_END ===/s);
+    if (ansMatch) {
+      sections.ans = ansMatch[1].trim();
+    }
+
+    // Fallback: extract conversation for audio if AUDIO section not found
+    if (!sections.audio && sections.back) {
+      const conversationMatch = sections.back.match(/--- CONVERSATION_START ---(.*?)--- CONVERSATION_END ---/s);
+      if (conversationMatch) {
+        const conversationText = conversationMatch[1];
+
+        // Process audio lines
+        sections.audio = conversationText
+          .split('\n')
+          .map(line => line.trim())
+          .filter(line => line.startsWith('- '))
+          .map(line => {
+            // Remove speaker name and colon (e.g., "Jake: ")
+            const colonIndex = line.indexOf(':');
+            const processedLine = colonIndex > 0 ? line.substring(colonIndex + 1).trim() : line.substring(2).trim();
+
+            // Add SSML break tag at the end
+            return processedLine + ' <break time="0.4s"/>';
+          })
+          .join('\n');
+      }
+    }
+
+    // Fallback: extract ans from conversation if ANS section not found
+    if (!sections.ans && sections.back) {
+      const conversationMatch = sections.back.match(/--- CONVERSATION_START ---(.*?)--- CONVERSATION_END ---/s);
+      if (conversationMatch) {
+        const conversationText = conversationMatch[1];
+
+        // Find line containing the prompt word
+        const lines = conversationText.split('\n').filter(line => line.trim().startsWith('- '));
+        for (const line of lines) {
+          const colonIndex = line.indexOf(':');
+          const sentence = colonIndex > 0 ? line.substring(colonIndex + 1).trim() : line.substring(2).trim();
+
+          if (sentence.toLowerCase().includes(prompt.toLowerCase())) {
+            sections.ans = sentence;
+            break;
+          }
+        }
+      }
     }
 
     return sections;
@@ -186,7 +213,7 @@ class OpenAIService {
 
     try {
       // Select optimal model based on prompt complexity
-      const promptTokens = estimateTokens(prompt + JSON.stringify(optimizedMessages));
+      const promptTokens = estimateTokens(prompt + JSON.stringify(messages));
       const complexity = promptTokens > 1000 ? 'complex' : promptTokens > 500 ? 'medium' : 'simple';
       const selectedModel = selectOptimalModel(complexity);
 
@@ -203,8 +230,8 @@ class OpenAIService {
         return this.buildNoteFromSections(sections, { deckName, modelName, tags, prompt });
       }
 
-      // Use optimized prompt template (50% fewer tokens)
-      const selectedMessages = complexity === 'simple' ? optimizedMessages : messages;
+      // Use original prompt template
+      const selectedMessages = messages;
 
       const body = {
         model: selectedModel.name,

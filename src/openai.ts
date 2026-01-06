@@ -1,14 +1,7 @@
 import { messages } from "./vocab_prompt";
-
-export interface Note {
-  modelName: string;
-  deckName: string;
-  fields: { Front: string, Back: string, Question: string, Ans: string, Audio?: string };
-  tags: string[];
-  key: string;
-  trashed?: boolean;
-  created?: boolean;
-}
+import { AnkiCardService } from "./services/ankiCardService";
+import { Note } from "./types";
+import { ENDPOINTS } from "./constants";
 
 interface Options {
   deckName: string;
@@ -18,130 +11,91 @@ interface Options {
 }
 
 
-function extractSections(htmlContent: string, prompt: string) {
-  const sections: {
-    front: string;
-    audio: string;
-    ans: string;
-    back: string
-  } = {
-    front: '',
-    ans: '',
-    audio: '',
-    back: ''
-  };
-
-  // Extract Front section (từ front-section)
-  const frontMatch = htmlContent.match(/<div class="front-section">(.*?)<\/div>\s*<div class="back-section">/s);
-  if (frontMatch) {
-    sections.front = `<div class="front-section">${frontMatch[1]}</div>`;
-  }
-
-  // Extract Audio section (từ dialogue)
-  const dialogueMatch = htmlContent.match(/<div class="dialogue">(.*?)<\/div>/s);
-  if (dialogueMatch) {
-    const dialogueContent = dialogueMatch[1];
-    let answer = '';
-
-    // Extract text from <p> tags and process for audio
-    const pMatches = dialogueContent.match(/<p><strong>.*?<\/strong>(.*?)<\/p>/g);
-    if (pMatches) {
-      sections.audio = pMatches
-        .map(pTag => {
-          // Extract text after speaker name
-          const textMatch = pTag.match(/<strong>.*?<\/strong>\s*(.*?)<\/p>/);
-          if (textMatch) {
-            const text = textMatch[1].trim();
-
-            // Clean up any HTML entities and placeholder patterns
-            const cleanText = text
-              .replace(/{{.*?}}/g, prompt) // Replace placeholders with actual word
-              .replace(/&[a-z]+;/gi, '') // Remove HTML entities
-              .trim();
-
-            // Extract answer if line contains keyword
-            if (cleanText.toLowerCase().includes(prompt.toLowerCase())) {
-              answer = cleanText;
-            }
-
-            // Add SSML break tag at the end
-            return cleanText + ' <break time="0.4s"/>';
-          }
-          return '';
-        })
-        .filter(line => line.trim() !== '')
-        .join('\n');
-
-      sections.ans = answer;
-    }
-  }
-
-  // Extract Back section (phần back-section)
-  const backMatch = htmlContent.match(/<div class="back-section">(.*?)(?=<style>|$)/s);
-  if (backMatch) {
-    sections.back = `<div class="back-section">${backMatch[1]}</div>`;
-  }
-
-  return sections;
-}
-
+/**
+ * Create Anki cards from OpenAI using structured vocab prompts
+ */
 export async function suggestAnkiNotes(
-  openAIKey: string, { deckName, modelName, prompt }: Options, _notes: Note[]): Promise<any> {
-  console.log('-------------- suggestAnkiNotes ----------------');
+  openAIKey: string,
+  { deckName, modelName, prompt, tags }: Options,
+  _notes: Note[]
+): Promise<Note[]> {
+  try {
+    // Debug: Check API key
+    console.log('OpenAI API Key exists:', !!openAIKey);
+    console.log('OpenAI API Key length:', openAIKey?.length);
+    console.log('OpenAI API Key starts with sk-:', openAIKey?.startsWith('sk-'));
+    console.log('OpenAI API Key first 20 chars:', openAIKey?.substring(0, 20));
 
-  const body = {
-    model: 'gpt-4o-mini',
-    messages: [
-      ...messages,
-      {
-        role: 'user',
-        content: prompt,
-      }
-    ]
-  };
+    // Validate API key format
+    if (!openAIKey || !openAIKey.startsWith('sk-')) {
+      throw new Error('Invalid API key format. Must start with "sk-"');
+    }
 
-  const res = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${openAIKey}`,
-    },
-    body: JSON.stringify(body),
-  });
+    // Trim any whitespace
+    const cleanKey = openAIKey.trim();
 
-  if (!res.ok) throw new Error('OpenAI API request failed');
-  const data = await res.json();
+    const body = {
+      model: 'gpt-4o-mini',
+      messages: [
+        ...messages,
+        { role: 'user', content: prompt }
+      ]
+    };
 
-  if (!data.choices || !data.choices.length) {
-    throw new Error('No completion choices were returned from OpenAI');
+    console.log('Fetching OpenAI API:', ENDPOINTS.OPENAI_API);
+
+    const res = await fetch(ENDPOINTS.OPENAI_API, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${cleanKey}`,
+      },
+      body: JSON.stringify(body),
+    });
+
+    console.log('OpenAI Response status:', res.status, res.statusText);
+
+    if (!res.ok) {
+      const errorBody = await res.text();
+      console.error('OpenAI Error Response:', errorBody);
+      throw new Error(`OpenAI API request failed: ${res.status} ${res.statusText}. Check your API key at https://platform.openai.com/api-keys`);
+    }
+
+    const data = await res.json();
+    if (!data.choices?.length) {
+      throw new Error('No completion choices were returned from OpenAI');
+    }
+
+    const aiResponse = data.choices[0].message.content;
+
+    const result = AnkiCardService.processAIResponse(aiResponse, prompt, {
+      deckName,
+      modelName,
+      prompt,
+      tags: tags || ['vocab-enhanced']
+    });
+
+    // Provide default Audio if missing
+    if (!result.note.fields.Audio || result.note.fields.Audio.length === 0) {
+      result.note.fields.Audio = `Audio content for: ${prompt}`;
+    }
+
+    return [{
+      key: crypto.randomUUID(),
+      deckName: result.note.deckName,
+      modelName: result.note.modelName,
+      fields: {
+        Front: result.note.fields.Front,
+        Back: result.note.fields.Back,
+        Ans: result.note.fields.Ans,
+        Audio: result.note.fields.Audio
+      },
+      tags: result.note.tags,
+      trashed: false,
+      created: false
+    }];
+  } catch (error) {
+    throw error;
   }
-
-  const noteContent = data.choices[0].message.content;
-  const sections = extractSections(noteContent, prompt);
-  if (sections.audio.length === 0) {
-    throw new Error('Audio list is empty! No audio available.');
-  }
-
-  const answer: string = sections.ans;
-  // Replace placeholders and hide the answer in front section
-  const hiddenAnswerAtFront: string = sections.front
-    .replace(/{{.*?}}/g, '[...]') // Replace all placeholders with [...]
-    .replace(new RegExp(prompt, 'gi'), '[...]'); // Also replace any remaining instances of the word
-
-  console.log(sections);
-
-  return [{
-    key: crypto.randomUUID(),
-    deckName,
-    modelName,
-    fields: {
-      Front: hiddenAnswerAtFront,
-      Question: `{{c1::${answer}}}`,
-      Ans: answer,
-      Back: sections.back,
-      Audio: sections.audio,
-    },
-    tags: [] // Luôn trả về empty tags
-  }];
 }
 

@@ -1,7 +1,6 @@
 export interface NoteFields {
   Front: string;
   Back: string;
-  Question: string;
   Ans: string;
   Audio?: string;
 }

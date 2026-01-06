@@ -141,7 +141,6 @@ function App() {
         fields: {
           Front: rawNote.fields.Front || '',
           Back: rawNote.fields.Back || '',
-          Question: rawNote.fields.Question || '',
           Ans: rawNote.fields.Ans || '',
           Audio: rawNote.fields.Audio || '',
         },

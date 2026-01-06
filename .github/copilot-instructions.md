@@ -1,124 +1,108 @@
 # Anki Maker AI Coding Instructions
 
 ## Project Overview
-Frontend-only React app that generates Anki flashcards from user prompts using OpenAI GPT. Integrates with local Anki desktop via AnkiConnect plugin and optional TTS service for audio generation.
+React + TypeScript frontend that generates Anki flashcards from user prompts using OpenAI GPT-4o-mini. Features streaming AI responses, direct Anki desktop integration via AnkiConnect, optional TTS audio generation, and specialized Vietnamese English learning workflows.
 
 ## Architecture & Key Components
 
+### Application Entry Points
+- **Main**: `src/main.tsx` → Router with lazy-loaded pages
+- **UI Variants**: `src/pages/app/App.tsx` (original), `AppModern.tsx`, `AppSimple.tsx`
+- **Route Structure**: React Router with `/`, `/modern`, `/simple`, `/settings`, `/test-anki`, `/compare`
+
 ### Core Data Flow
-1. **User Input** → `Home.tsx` (entry point) → `App.tsx` (main card creation interface)
-2. **AI Generation** → `openai.ts` (GPT API calls) → `vocab_prompt.ts`/`default_prompt.ts` (prompt templates)
-3. **Anki Integration** → `anki.ts` (AnkiConnect API) → Local Anki desktop app (port 8765)
-4. **State Management** → React Query for server state, Context API for OpenAI key, `useLocalStorage.tsx` for persistence
+1. **User Input** → App components → `useOpenAI` hook
+2. **AI Generation** → `enhancedOpenAIService` (streaming) → `vocab_prompt.ts` (Vietnamese A2 learners)
+3. **Anki Integration** → `ankiService` → AnkiConnect localhost:8765 → Local Anki desktop
+4. **State Management** → React Query + Context API + localStorage persistence
 
-### Critical Dependencies
-- **AnkiConnect**: Must be running on `localhost:8765` for card creation
-- **TTS Service**: Optional external service on `localhost:3000/dev/chatbot/tts/api` for audio
-- **OpenAI API**: Key stored in localStorage via `OpenAIKeyContext.tsx`
-
-### Note Structure Convention
+### Note Data Structure
 ```typescript
 interface Note {
-  modelName: string;        // Anki card model type
-  deckName: string;         // Target Anki deck
-  fields: {                 // Card content
-    Front: string;          // Question side (markdown → HTML)
-    Back: string;           // Answer side (markdown → HTML)
-    Question: string;       // Alternative field name
-    Ans: string;            // Alternative field name
-    Audio?: string;         // Text for TTS generation
-  };
-  tags: string[];           // Anki tags
+  id?: string;
   key: string;              // Unique identifier
+  modelName: string;        // Anki card model
+  deckName: string;         // Target deck
+  fields: NoteFields;       // Front/Back/Ans content + Audio
+  tags: string[];           // Anki tags
   trashed?: boolean;        // User rejected
   created?: boolean;        // Successfully added to Anki
+  createdAt?: Date;
+  audio?: AudioAttachment[];
 }
 ```
 
 ## Development Workflows
 
-### Local Development
+### Commands
 ```bash
-pnpm dev                  # Start dev server
-pnpm build               # TypeScript compile + build
-pnpm lint                # ESLint check
-pnpm preview             # Preview production build
+pnpm dev      # Vite dev server
+pnpm build    # TypeScript + Vite build
+pnpm lint     # ESLint check
+pnpm preview  # Preview production build
+pnpm test     # Vitest + jsdom
 ```
 
-### Testing with Vitest
-- Use MSW for mocking AnkiConnect API calls (see `anki.test.ts`)
-- Tests require `jsdom` environment for React components
-- Setup file: `tests/setup.js`
+### Testing Patterns
+- **MSW**: Mock AnkiConnect on `localhost:8765` (see `src/anki.test.ts`)
+- **Setup**: `tests/setup.js` configures testing-library matchers
+- **Environment**: jsdom for React components in `vitest.config.ts`
 
-### Environment Setup
-1. Install Anki desktop app + AnkiConnect plugin
-2. Set OpenAI API key in Settings or `.env` as `OPENAI_API_KEY`
-3. For audio: Configure TTS service endpoint in `App.tsx` (hardcoded path)
+## Service Layer Architecture
 
-## Project-Specific Patterns
+### AI Integration
+- **Prompts**: `src/vocab_prompt.ts` (Vietnamese learners, structured conversation cards)
+- **Services**: `src/services/openai/openaiService.ts` (streaming), `enhanced/enhancedOpenAIService.ts`
+- **Hooks**: `src/hooks/useOpenAI.ts` (React Query mutations), `useOpenAIStream.ts`
 
-### State Management
-- **React Query**: All external API calls (Anki, OpenAI)
-- **Context + useLocalStorage**: OpenAI key persistence
-- **Component State**: Form inputs and UI interactions
+### Anki Integration
+- **Low-level**: `src/anki.ts` (JSON-RPC wrapper)
+- **Service**: `src/services/anki/ankiService.ts` (batching, card creation)
+- **Hooks**: `src/hooks/useAnki.ts` (decks, models, tags queries)
 
-### API Integration
-- **AnkiConnect**: JSON-RPC over HTTP to `localhost:8765`
-- **OpenAI**: Direct API calls with streaming support
-- **Error Handling**: Network errors bubble up from `ankiConnect()` wrapper
+### State Management Patterns
+- **External APIs**: React Query with caching (5min staleTime for Anki queries)
+- **User Settings**: Context + localStorage via `useLocalStorage.tsx`
+- **OpenAI Key**: `OpenAIKeyContext.tsx` with persistent storage
 
-### Prompt Engineering
-- `vocab_prompt.ts`: Specialized for Vietnamese English learners (A2 level)
-- `default_prompt.ts`: General card creation with user feedback integration
-- System prompts include user's previous card decisions (created/trashed)
+## Project-Specific Conventions
 
-### Card Processing Pipeline
-1. Raw user prompt → OpenAI API call
-````instructions
-# Anki Maker — AI contributor instructions
+### Component Organization
+- **UI Components**: `src/components/ui/` (NoteCard variants, AnkiPreview)
+- **Forms**: `src/components/forms/` (PromptInput, DeckSelector, TagSelector)
+- **Layout**: `src/components/layout/` (ErrorBoundary, ToastProvider)
+- **Lazy Loading**: `src/components/LazyLoader.tsx` for code splitting
 
-Short, targeted guidance to get productive in this repo. Focus on where behaviour lives, where to change prompts/API calls, and how to run/build/tests locally.
+### Configuration & Constants
+- **Endpoints**: `src/constants/endpoints.ts` (AnkiConnect 8765, TTS 3000, OpenAI API)
+- **AI Config**: `src/constants/aiConfig.ts` (model selection, token estimation)
+- **Error Messages**: Centralized in `src/constants/errorMessages.ts`
 
-Core facts
-- Frontend-only React + TypeScript app. Entry: `src/main.tsx`, main UI variants: `src/pages/app/App.tsx`, `AppModern.tsx`, `AppSimple.tsx`.
-- Main responsibilities: take a user prompt → call OpenAI → parse into Note objects → (optional) generate TTS → push notes to Anki via AnkiConnect.
+### Critical Integration Points
+- **AnkiConnect**: Must be running on localhost:8765 for card creation
+- **TTS Service**: Optional localhost:3000/dev/chatbot/tts/api (hardcoded in multiple places)
+- **OpenAI**: Streaming via fetch with abort controllers for cancellation
 
-Where to change AI behaviour
-- Prompts: `src/default_prompt.ts` and `src/vocab_prompt.ts`.
-- OpenAI wrapper: `src/openai.ts` and `src/services/openai/openaiService.ts` (streaming + parsing logic).
+### Vietnamese Learning Specialization
+- **Prompt Template**: Structured conversations with IPA phonetics, cultural context
+- **Card Format**: Front/Back with conversations, Vietnamese translations, usage notes
+- **Target Audience**: A2-level Vietnamese speakers learning American English
 
-Anki integration
-- Low-level: `src/anki.ts` implements the JSON-RPC wrapper to AnkiConnect (localhost:8765).
-- Higher-level service: `src/services/anki/ankiService.ts` contains card creation flows and batching.
-- Important: AnkiConnect must be running locally on port 8765 for add-note flows to succeed.
+## Common Modification Patterns
 
-Note shape and processing
-- Canonical shape is the `Note` used across the UI (see `src/types/index.ts` and uses in `src/components/NoteCardMemo.tsx`). Key fields: `modelName`, `deckName`, `fields` (Front/Back/Question/Ans/Audio), `tags`, `key`, `trashed`, `created`.
-- Markdown → HTML conversion happens before sending notes to Anki (see `marked` usage in services/components).
+### Adding New AI Prompts
+1. Create prompt template in `src/` (follow `vocab_prompt.ts` structure)
+2. Update `openaiService.ts` to use new prompt
+3. Modify parsing logic to handle response format
+4. Add tests with MSW mocks
 
-State & app patterns to follow
-- External calls use React Query (see `src/config/queryClient.ts` and hooks in `src/hooks/useOpenAI.ts`, `useAnki.ts`).
-- OpenAI API key persistence: `src/OpenAIKeyContext.tsx` + `src/useLocalStorage.tsx`.
-- Prefer using existing hooks/services rather than calling fetch directly so caching, error handling, and telemetry remain consistent.
+### Extending Note Fields
+1. Update `NoteFields` interface in `src/types/index.ts`
+2. Modify UI components (`NoteCard*` variants)
+3. Update Anki service serialization
+4. Run tests to ensure no breakage
 
-Dev, build and test commands
-- Start dev server: `pnpm dev`
-- Build: `pnpm build` (TypeScript + Vite)
-- Lint: `pnpm lint`
-- Preview production build: `pnpm preview`
-- Run tests: `pnpm test` (Vitest + jsdom). Tests use MSW to mock external services; see `src/anki.test.ts` and `tests/setup.js`.
-
-Integration notes & gotchas
-- TTS endpoint is hardcoded in the app (search `tts` or `src/services/tts/ttsService.ts` and `src/App.tsx`). If you change it, update both service and UI config.
-- Network errors from AnkiConnect are thrown by `ankiConnect()`; callers usually display toasts (see `src/components/layout/ToastProvider/ToastProvider.tsx`).
-- The app stores lightweight user decisions (created/trashed) and feeds them to the prompt for context — modifying prompt templates may require updating parsing logic and tests.
-
-Where tests mock external integrations
-- MSW handlers live next to tests (see `src/anki.test.ts`) and `tests/setup.js` config. Mock AnkiConnect on `http://localhost:8765` and OpenAI responses for deterministic tests.
-
-When adding features
-- Add small, focused unit tests for services (OpenAI parsing, Anki payload shaping). Follow existing test patterns in `src/*.test.ts`.
-- Update `src/types/index.ts` for public data shape changes and run `pnpm test`.
-
-If anything in these notes is unclear or you want more examples (e.g., a sample Note payload or walkthrough of the Anki RPC flow), tell me which section and I will expand.
-````
+### Testing External Services
+- Mock AnkiConnect responses in test files using MSW
+- Use `rest.post('http://localhost:8765')` handlers
+- Test error scenarios (connection failures, invalid responses)

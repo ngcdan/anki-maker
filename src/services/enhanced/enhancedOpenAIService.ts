@@ -3,7 +3,6 @@ import { openaiService } from '../openai/openaiService';
 import { SuggestOptions, Note } from '../../types';
 import { selectOptimalModel, estimateTokens } from '../../constants/aiConfig';
 import { messages } from '../../vocab_prompt';
-import { optimizedMessages } from '../../vocab_prompt_optimized';
 import { responseCache } from '../../utils/responseCache';
 import { logPerformance } from '../../constants/performance';
 
@@ -12,7 +11,6 @@ interface EnhancedSuggestOptions extends SuggestOptions {
   preferredModel?: 'TURBO' | 'MINI' | 'GPT4' | 'AUTO';
   enableCaching?: boolean;
   enableStreaming?: boolean;
-  useOptimizedPrompts?: boolean;
   enablePerformanceLogging?: boolean;
 }
 
@@ -30,13 +28,12 @@ class EnhancedOpenAIService {
       prompt,
       preferredModel = 'AUTO',
       enableCaching = true,
-      useOptimizedPrompts = true,
       enablePerformanceLogging = true,
     } = options;
 
     try {
-      // Select messages based on user preference
-      const selectedMessages = useOptimizedPrompts ? optimizedMessages : messages;
+      // Use original prompt messages only
+      const selectedMessages = messages;
       const promptTokens = estimateTokens(prompt + JSON.stringify(selectedMessages));
 
       // Model selection logic

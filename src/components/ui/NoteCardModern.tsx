@@ -15,6 +15,8 @@ import {
   Fade,
   Tooltip,
   Paper,
+  Tabs,
+  Tab,
   useTheme,
   alpha,
 } from '@mui/material';
@@ -32,7 +34,7 @@ import {
   Restore,
   DeleteForever,
 } from '@mui/icons-material';
-import { marked } from 'marked';
+
 
 import { Note } from '../../types';
 import { useAddNote, useTTS } from '../../hooks';
@@ -59,6 +61,7 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
   const [currentNote, setCurrentNote] = useState(note);
   const [expanded, setExpanded] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
+  const [previewTab, setPreviewTab] = useState(0);
   const [copied, setCopied] = useState<string | null>(null);
 
   // Original NoteCard hooks
@@ -125,12 +128,19 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
       const audioTexts = currentNote.fields.Audio || '';
       let fields = currentNote.fields;
 
-      // Convert markdown to HTML
+      // Use fields as-is to avoid processing issues
       const updateFields = {
-        ...fields,
-        Front: marked.parse(fields.Front),
-        Back: marked.parse(fields.Back),
+        Front: fields.Front || '',
+        Back: fields.Back || '',
+        Ans: fields.Ans || '',
+        Audio: audioTexts || '',
       };
+
+      // Validate required fields
+      if (!updateFields.Front.trim() || !updateFields.Back.trim()) {
+        console.error('Front and Back fields are required');
+        return;
+      }
 
       let migrateNote: any = { ...currentNote, fields: updateFields };
 
@@ -138,8 +148,10 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
       if (audioTexts && openAIKey) {
         const audioResponse = await generateAudio(audioTexts, openAIKey, {
           voice: 'alloy',
-          speed: 1.0,
+          speed: 0.85, // Slower for clarity and natural pauses
           model: 'tts-1',
+          addPauseBetweenSentences: true, // Add pauses between sentences
+          answerText: currentNote.fields.Ans, // Add extra pause after answer
         });
 
         if (audioResponse) {
@@ -153,10 +165,11 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
 
       addNote(migrateNote, {
         onSuccess: () => {
+          console.log('✅ Note created successfully in Anki!');
           onCreate();
         },
         onError: (error) => {
-          console.error('Error adding note:', error);
+          console.error('❌ Error adding note:', error);
         },
       });
     } catch (error) {
@@ -299,42 +312,81 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
                 </Typography>
                 <Divider sx={{ mb: 2 }} />
 
-                {/* Front/Question Preview */}
-                <Box sx={{ mb: 2 }}>
-                  <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-                    Mặt trước:
-                  </Typography>
-                  <Box
-                    sx={{
-                      mt: 0.5,
-                      p: 1.5,
-                      borderRadius: 1,
-                      backgroundColor: mode === 'dark' ? 'grey.800' : 'grey.50',
-                      border: `1px solid ${mode === 'dark' ? 'grey.700' : 'grey.200'}`,
-                    }}
-                    dangerouslySetInnerHTML={{
-                      __html: marked.parse(fields.Front || fields.Question || '')
-                    }}
-                  />
-                </Box>
+                {/* Enhanced Preview with proper HTML rendering */}
+                <Tabs value={previewTab} onChange={(_, newValue) => setPreviewTab(newValue)}>
+                  <Tab label="Mặt trước" />
+                  <Tab label="Mặt sau" />
+                  {fields.Audio && <Tab label="Audio" />}
+                </Tabs>
 
-                {/* Back/Answer Preview */}
-                <Box>
-                  <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-                    Mặt sau:
-                  </Typography>
-                  <Box
-                    sx={{
-                      mt: 0.5,
-                      p: 1.5,
-                      borderRadius: 1,
-                      backgroundColor: mode === 'dark' ? 'grey.800' : 'grey.50',
-                      border: `1px solid ${mode === 'dark' ? 'grey.700' : 'grey.200'}`,
-                    }}
-                    dangerouslySetInnerHTML={{
-                      __html: marked.parse(fields.Back || fields.Ans || '')
-                    }}
-                  />
+                <Box sx={{ mt: 2 }}>
+                  {previewTab === 0 && (
+                    <Box>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                        Mặt trước:
+                      </Typography>
+                      <Box
+                        sx={{
+                          mt: 0.5,
+                          p: 1.5,
+                          borderRadius: 1,
+                          backgroundColor: mode === 'dark' ? 'grey.800' : 'grey.50',
+                          border: `1px solid ${mode === 'dark' ? 'grey.700' : 'grey.200'}`,
+                          '& .anki-card': {
+                            maxWidth: '100%',
+                            margin: 0
+                          }
+                        }}
+                        dangerouslySetInnerHTML={{
+                          __html: fields.Front || ''
+                        }}
+                      />
+                    </Box>
+                  )}
+                  {previewTab === 1 && (
+                    <Box>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                        Mặt sau:
+                      </Typography>
+                      <Box
+                        sx={{
+                          mt: 0.5,
+                          p: 1.5,
+                          borderRadius: 1,
+                          backgroundColor: mode === 'dark' ? 'grey.800' : 'grey.50',
+                          border: `1px solid ${mode === 'dark' ? 'grey.700' : 'grey.200'}`,
+                          '& .anki-card': {
+                            maxWidth: '100%',
+                            margin: 0
+                          }
+                        }}
+                        dangerouslySetInnerHTML={{
+                          __html: fields.Back || fields.Ans || ''
+                        }}
+                      />
+                    </Box>
+                  )}
+                  {previewTab === 2 && fields.Audio && (
+                    <Box>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                        Audio Text:
+                      </Typography>
+                      <Box
+                        sx={{
+                          mt: 0.5,
+                          p: 1.5,
+                          borderRadius: 1,
+                          backgroundColor: mode === 'dark' ? 'grey.800' : 'grey.50',
+                          border: `1px solid ${mode === 'dark' ? 'grey.700' : 'grey.200'}`,
+                          fontFamily: 'monospace',
+                          fontSize: '0.9em',
+                          whiteSpace: 'pre-wrap'
+                        }}
+                      >
+                        {fields.Audio}
+                      </Box>
+                    </Box>
+                  )}
                 </Box>
               </Paper>
             </Box>
@@ -367,7 +419,7 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
                 <TextField
                   fullWidth
                   label="Front"
-                  defaultValue={fields.Front}
+                  value={currentNote.fields.Front}
                   multiline
                   rows={expanded ? 3 : 2}
                   name="Front"
@@ -404,53 +456,12 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
                 />
               </Grid>
 
-              {fields.Question && (
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Question"
-                    defaultValue={fields.Question}
-                    multiline
-                    rows={expanded ? 3 : 2}
-                    name="Question"
-                    onChange={handleFieldChange}
-                    disabled={isFieldDisabled}
-                    size="small"
-                    InputProps={{
-                      endAdornment: (
-                        <Box sx={{ display: 'flex', gap: 0.5 }}>
-                          <Tooltip title="Copy">
-                            <IconButton
-                              size="small"
-                              onClick={() => handleCopy(fields.Question, 'Question')}
-                              sx={{ color: copied === 'Question' ? 'success.main' : 'text.secondary' }}
-                            >
-                              <ContentCopy fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Play audio">
-                            <IconButton
-                              size="small"
-                              onClick={() => fields.Audio && handlePlayAudio(fields.Audio)}
-                              disabled={isGenerating}
-                              sx={{ color: 'text.secondary' }}
-                            >
-                              {isGenerating ? <CircularProgress size={16} /> : <VolumeUp fontSize="small" />}
-                            </IconButton>
-                          </Tooltip>
-                        </Box>
-                      ),
-                    }}
-                  />
-                </Grid>
-              )}
-
               {fields.Ans && (
                 <Grid item xs={12}>
                   <TextField
                     fullWidth
                     label="Answer"
-                    defaultValue={fields.Ans}
+                    value={currentNote.fields.Ans}
                     multiline
                     rows={expanded ? 3 : 2}
                     name="Ans"
@@ -490,7 +501,7 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
                 <TextField
                   fullWidth
                   label="Back"
-                  defaultValue={fields.Back}
+                  value={currentNote.fields.Back}
                   multiline
                   rows={expanded ? 3 : 2}
                   name="Back"
@@ -532,7 +543,7 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
                   <TextField
                     fullWidth
                     label="Audio"
-                    defaultValue={fields.Audio}
+                    value={currentNote.fields.Audio || ''}
                     multiline
                     rows={expanded ? 2 : 1}
                     name="Audio"

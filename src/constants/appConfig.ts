@@ -19,7 +19,7 @@ export const DEFAULT_APP_CONFIG: AppConfig = {
 
 export const DEFAULT_SETTINGS = {
   deckName: 'CS',
-  modelName: 'Basic_cloze',
+  modelName: 'Basic (Type Answer)',  // Custom model with Front, Ans, Back fields
   tags: [] as string[],
 } as const;
 

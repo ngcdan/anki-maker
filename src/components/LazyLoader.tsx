@@ -35,8 +35,6 @@ const LazyWrapper = ({
 // Lazy loaded components
 export const LazyApp = lazy(() => import('../pages/app/App'));
 export const LazySettings = lazy(() => import('../pages/Settings'));
-export const LazyHome = lazy(() => import('../pages/Home'));
-export const LazyPerformanceDemo = lazy(() => import('./PerformanceDemo'));
 
 // Optimized imports with chunk names
 const LazyAppWithChunk = lazy(() =>
@@ -47,13 +45,7 @@ const LazySettingsWithChunk = lazy(() =>
   import(/* webpackChunkName: "settings" */ '../pages/Settings')
 );
 
-const LazyHomeWithChunk = lazy(() =>
-  import(/* webpackChunkName: "home" */ '../pages/Home')
-);
-
-export const LazyPerformanceDemoWithChunk = lazy(() =>
-  import(/* webpackChunkName: "performance-demo" */ './PerformanceDemo')
-);
+// Removed unused lazy components
 
 // Higher-order component for lazy loading with custom error handling
 export const withLazyLoading = <T extends object>(
@@ -75,10 +67,6 @@ export const preloadComponent = (componentImporter: () => Promise<any>) => {
 
 // Route-based lazy loading configuration
 export const routeComponents = {
-  home: {
-    component: LazyHomeWithChunk,
-    preload: () => import(/* webpackChunkName: "home" */ '../pages/Home'),
-  },
   app: {
     component: LazyAppWithChunk,
     preload: () => import(/* webpackChunkName: "app" */ '../pages/app/App'),
@@ -87,11 +75,7 @@ export const routeComponents = {
     component: LazySettingsWithChunk,
     preload: () => import(/* webpackChunkName: "settings" */ '../pages/Settings'),
   },
-  performanceDemo: {
-    component: LazyPerformanceDemoWithChunk,
-    preload: () => import(/* webpackChunkName: "performance-demo" */ './PerformanceDemo'),
-  },
 };
 
 export default LazyWrapper;
-export { LazyHomeWithChunk, LazySettingsWithChunk, LazyAppWithChunk };
+export { LazySettingsWithChunk, LazyAppWithChunk };

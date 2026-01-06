@@ -8,9 +8,9 @@ import { OpenAIKeyContext } from '../../OpenAIKeyContext';
 
 import { NoteCard, DeckSelector, TagSelector, PromptInput, NoteCardSkeleton, FormSkeleton, SettingsFab } from '../../components';
 import { PerformanceMonitor } from '../../components/PerformanceMonitor';
-import { useAnkiConnection, useOpenAI, useNoteManagement, useErrorHandler } from '../../hooks';
+import { useAnkiConnection, useOpenAI, useNoteManagement, useErrorHandler, useAddNote } from '../../hooks';
 import { ERROR_MESSAGES, DEFAULT_SETTINGS, SUCCESS_MESSAGES } from '../../constants';
-import { SuggestOptions } from '../../types';
+import { SuggestOptions, Note } from '../../types';
 import useLocalStorage from '../../useLocalStorage';
 
 function App() {
@@ -30,6 +30,7 @@ function App() {
   const { suggestNotes, isLoading: aiLoading, error: aiError } = useOpenAI();
   const { pendingNotes, actions } = useNoteManagement();
   const { handleError, handleSuccess } = useErrorHandler();
+  const { mutateAsync: addNote, isLoading: isAddingNote } = useAddNote();
 
   const modelName = DEFAULT_SETTINGS.modelName;
 
@@ -69,9 +70,23 @@ function App() {
     handleSuccess(SUCCESS_MESSAGES.NOTE_TRASHED);
   };
 
-  const handleNoteCreate = (key: string) => {
-    actions.createNote(key);
-    handleSuccess(SUCCESS_MESSAGES.NOTE_CREATED);
+  const handleNoteCreate = async (key: string) => {
+    // Find the note by key
+    const note = pendingNotes.find(n => n.key === key);
+    if (!note) {
+      handleError(new Error('Không tìm thấy note'), 'creating note');
+      return;
+    }
+
+    try {
+      // Send note to Anki using the service
+      await addNote(note);
+      // Update local state to mark as created
+      actions.createNote(key);
+      handleSuccess('Đã thêm thẻ vào Anki thành công!');
+    } catch (error) {
+      handleError(error, 'adding note to Anki');
+    }
   };
 
   return (
