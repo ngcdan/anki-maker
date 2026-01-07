@@ -45,12 +45,12 @@ class TTSService {
         response_format: 'mp3',
         speed: 1.0,
         ...options,
+        apiKey: openAIKey,
       };
 
       const response = await fetch(ENDPOINTS.OPENAI_TTS, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${openAIKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(request),

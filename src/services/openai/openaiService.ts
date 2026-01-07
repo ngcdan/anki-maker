@@ -242,13 +242,13 @@ class OpenAIService {
             content: prompt,
           },
         ],
+        apiKey: openAIKey,
       };
 
       const response = await fetch(ENDPOINTS.OPENAI_API, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${openAIKey}`,
         },
         body: JSON.stringify(body),
       });

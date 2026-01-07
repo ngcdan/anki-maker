@@ -33,14 +33,14 @@ export async function suggestAnkiNotes(
       messages: [
         ...messages,
         { role: 'user', content: prompt }
-      ]
+      ],
+      apiKey: cleanKey
     };
 
     const res = await fetch(ENDPOINTS.OPENAI_API, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${cleanKey}`,
       },
       body: JSON.stringify(body),
     });
