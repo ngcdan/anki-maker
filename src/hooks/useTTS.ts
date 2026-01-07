@@ -52,7 +52,7 @@ const addPausesToText = (text: string, answerText?: string): string => {
   }
 
   // 2. Process each dialogue turn
-  const processedTurns = dialogueTurns.map((turn, index) => {
+  const processedTurns = dialogueTurns.map((turn) => {
     let processed = turn.trim();
 
     // If this turn contains the answer text, add EXTRA long pause after it (6s)
