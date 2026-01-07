@@ -38,7 +38,6 @@ class ResponseCache {
       return null;
     }
 
-    console.log('✅ Cache hit:', key.substring(0, 20) + '...');
     return entry.response;
   }
 
@@ -56,13 +55,10 @@ class ResponseCache {
       timestamp: Date.now(),
       tokens
     });
-
-    console.log('💾 Cached response:', key.substring(0, 20) + '...', `(${tokens} tokens)`);
   }
 
   clear(): void {
     this.cache.clear();
-    console.log('🗑️ Cache cleared');
   }
 
   getStats(): { size: number; hitRate?: number } {

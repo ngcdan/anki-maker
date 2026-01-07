@@ -52,10 +52,6 @@ class EnhancedOpenAIService {
         selectedModel = modelMap[preferredModel];
       }
 
-      if (enablePerformanceLogging) {
-        console.log(`🚀 Enhanced AI Service: ${selectedModel.name} (${preferredModel} mode, ${promptTokens} tokens)`);
-      }
-
       // Check cache if enabled
       if (enableCaching) {
         const cachedResponse = responseCache.get(prompt, selectedModel.name);

@@ -55,13 +55,6 @@ class AnkiService {
 
   async addNote(note: Note): Promise<number> {
     try {
-      console.log('🔍 Starting addNote with:', {
-        deckName: note.deckName,
-        modelName: note.modelName,
-        tags: note.tags,
-        fields: note.fields,
-      });
-
       // Validate note before sending
       await this.validateNote(note);
 
@@ -70,7 +63,7 @@ class AnkiService {
       let processedFields = { ...note.fields };
 
       // Map fields to match the model's expected fields
-      const mappedFields = await this.mapFieldsToModel(processedFields, note.modelName); console.log('✅ Fields mapped successfully:', mappedFields);
+      const mappedFields = await this.mapFieldsToModel(processedFields, note.modelName);
 
       // Validate that we have some fields to send
       if (Object.keys(mappedFields).length === 0) {
@@ -90,14 +83,11 @@ class AnkiService {
         ankiNote.audio = note.audio;
       }
 
-      console.log('📤 Sending to AnkiConnect:', JSON.stringify(ankiNote, null, 2));
-
       const result = await this.ankiConnect({
         action: 'addNote',
         params: { note: ankiNote },
       });
 
-      console.log('✅ Note added successfully, ID:', result);
       return result;
     } catch (error) {
       console.error('❌ Failed to add note:', error);
@@ -107,27 +97,19 @@ class AnkiService {
   }
 
   private async validateNote(note: Note): Promise<void> {
-    console.log('🔍 Validating note...');
-
     // Check if model exists
     const models = await this.fetchModels();
-    console.log('📋 Available models:', models);
-    console.log('🎯 Looking for model:', note.modelName);
 
     if (!models.includes(note.modelName)) {
       throw new Error(`Model "${note.modelName}" does not exist. Available models: ${models.join(', ')}`);
     }
-    console.log('✅ Model exists');
 
     // Check if deck exists
     const decks = await this.fetchDecks();
-    console.log('📚 Available decks:', decks);
-    console.log('🎯 Looking for deck:', note.deckName);
 
     if (!decks.includes(note.deckName)) {
       throw new Error(`Deck "${note.deckName}" does not exist. Available decks: ${decks.join(', ')}`);
     }
-    console.log('✅ Deck exists');
   }
 
   async fetchRecentNotes(modelName: string, tags: string[]): Promise<any[]> {
@@ -170,8 +152,6 @@ class AnkiService {
 
   private async mapFieldsToModel(noteFields: NoteFields, modelName: string): Promise<Record<string, string>> {
     const modelFields = await this.fetchModelFieldNames(modelName);
-    console.log('🔍 Model fields for', modelName, ':', modelFields);
-    console.log('🔍 Note fields to map:', noteFields);
 
     const mappedFields: any = {};
 
@@ -242,14 +222,10 @@ class AnkiService {
       // Audio is handled separately as attachment, not as a text field
     ];
 
-    console.log('🔍 Fields to process:', fieldsToProcess);
-    console.log('🔍 Using mapping:', mapping);
-
     for (const [noteField, value] of fieldsToProcess) {
       if (!value) continue; // Skip empty fields
 
       const modelField = mapping[noteField] || noteField;
-      console.log(`  Mapping ${noteField} -> ${modelField}:`, modelFields.includes(modelField) ? '✅' : '❌');
 
       // Only include if the model actually has this field
       if (modelFields.includes(modelField)) {
@@ -257,7 +233,6 @@ class AnkiService {
       }
     }
 
-    console.log('🔍 Final mapped fields:', mappedFields);
     return mappedFields;
   }
 }

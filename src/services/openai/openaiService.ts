@@ -217,15 +217,12 @@ class OpenAIService {
       const complexity = promptTokens > 1000 ? 'complex' : promptTokens > 500 ? 'medium' : 'simple';
       const selectedModel = selectOptimalModel(complexity);
 
-      console.log(`🚀 Using model: ${selectedModel.name} (complexity: ${complexity}, estimated tokens: ${promptTokens})`);
-
       // Check cache first
       const cachedResponse = responseCache.get(prompt, selectedModel.name);
       if (cachedResponse) {
         const duration = Date.now() - startTime;
         logPerformance('Card Generation', duration, { input: promptTokens, output: 0 }, selectedModel.name, true);
 
-        console.log('⚡ Using cached response, skipping API call');
         const sections = this.extractSections(cachedResponse.choices[0].message.content, prompt);
         return this.buildNoteFromSections(sections, { deckName, modelName, tags, prompt });
       }

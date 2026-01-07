@@ -165,7 +165,6 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
 
       addNote(migrateNote, {
         onSuccess: () => {
-          console.log('✅ Note created successfully in Anki!');
           onCreate();
         },
         onError: (error) => {

@@ -51,15 +51,12 @@ const addPausesToText = (text: string, answerText?: string): string => {
     dialogueTurns = grouped.filter(t => t.trim());
   }
 
-  console.log('🎯 Detected dialogue turns:', dialogueTurns.length);
-
   // 2. Process each dialogue turn
   const processedTurns = dialogueTurns.map((turn, index) => {
     let processed = turn.trim();
 
     // If this turn contains the answer text, add EXTRA long pause after it (6s)
     if (answerText && turn.includes(answerText)) {
-      console.log('🎯 Found answer in turn', index + 1, ', adding 6 second pause');
       // Add MANY periods after the answer for 6 second pause
       const escapedAns = answerText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       processed = processed.replace(
@@ -95,10 +92,6 @@ export const useTTS = () => {
       const processedText = options.addPauseBetweenSentences
         ? addPausesToText(text, options.answerText)
         : text;
-
-      console.log('🎵 Original text:', text);
-      console.log('🎵 Answer text:', options.answerText);
-      console.log('🎵 Processed text with pauses:', processedText);
 
       const audioResponse = await ttsService.generateAudioWithOpenAI(processedText, openAIKey, {
         voice: options.voice || 'alloy',

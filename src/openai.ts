@@ -20,12 +20,6 @@ export async function suggestAnkiNotes(
   _notes: Note[]
 ): Promise<Note[]> {
   try {
-    // Debug: Check API key
-    console.log('OpenAI API Key exists:', !!openAIKey);
-    console.log('OpenAI API Key length:', openAIKey?.length);
-    console.log('OpenAI API Key starts with sk-:', openAIKey?.startsWith('sk-'));
-    console.log('OpenAI API Key first 20 chars:', openAIKey?.substring(0, 20));
-
     // Validate API key format
     if (!openAIKey || !openAIKey.startsWith('sk-')) {
       throw new Error('Invalid API key format. Must start with "sk-"');
@@ -42,8 +36,6 @@ export async function suggestAnkiNotes(
       ]
     };
 
-    console.log('Fetching OpenAI API:', ENDPOINTS.OPENAI_API);
-
     const res = await fetch(ENDPOINTS.OPENAI_API, {
       method: 'POST',
       headers: {
@@ -52,8 +44,6 @@ export async function suggestAnkiNotes(
       },
       body: JSON.stringify(body),
     });
-
-    console.log('OpenAI Response status:', res.status, res.statusText);
 
     if (!res.ok) {
       const errorBody = await res.text();
