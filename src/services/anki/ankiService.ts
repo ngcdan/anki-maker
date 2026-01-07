@@ -1,6 +1,5 @@
 import { ENDPOINTS, ANKI_CONNECT_VERSION, ERROR_MESSAGES } from '../../constants';
 import { AnkiConnectRequest, AnkiConnectResponse, Note, NoteFields } from '../../types';
-import { ClozeGenerator } from '../cloze/clozeGenerator';
 
 class AnkiService {
   private async ankiConnect<T = any>(params: Omit<AnkiConnectRequest, 'version'>): Promise<T> {
@@ -129,37 +128,6 @@ class AnkiService {
       throw new Error(`Deck "${note.deckName}" does not exist. Available decks: ${decks.join(', ')}`);
     }
     console.log('✅ Deck exists');
-  }
-
-  /**
-   * Check if a model is a Cloze type
-   */
-  private async isClozeModel(modelName: string): Promise<boolean> {
-    // Common Cloze model name patterns
-    const clozePatterns = [
-      /cloze/i,
-      /^Cloze$/i,
-      /Basic.*cloze/i,
-    ];
-
-    // Check by name pattern
-    if (clozePatterns.some(pattern => pattern.test(modelName))) {
-      return true;
-    }
-
-    // Check by fetching model templates (if needed)
-    try {
-      const templates = await this.ankiConnect<any>({
-        action: 'modelTemplates',
-        params: { modelName },
-      });
-
-      // Check if templates contain {{cloze: syntax
-      const templatesStr = JSON.stringify(templates);
-      return /\{\{cloze:/i.test(templatesStr);
-    } catch {
-      return false;
-    }
   }
 
   async fetchRecentNotes(modelName: string, tags: string[]): Promise<any[]> {

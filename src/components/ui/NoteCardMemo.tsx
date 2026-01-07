@@ -121,7 +121,7 @@ const NoteCard = memo<NoteCardProps>(({
           <Typography
             variant="body1"
             dangerouslySetInnerHTML={{
-              __html: note.fields.Front || note.fields.Question || ''
+              __html: note.fields.Front || ''
             }}
           />
         </Box>

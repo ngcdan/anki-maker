@@ -22,7 +22,6 @@ const sampleNotes: Note[] = [
     fields: {
       Front: '**Apple** là gì?',
       Back: 'Apple là **quả táo** trong tiếng Việt.\n\n- Màu đỏ hoặc xanh\n- Có vị ngọt\n- Giàu vitamin C',
-      Question: '',
       Ans: '',
       Audio: 'Apple',
     },
@@ -35,9 +34,8 @@ const sampleNotes: Note[] = [
     modelName: 'Basic',
     deckName: 'Toán học',
     fields: {
-      Front: '',
-      Back: '',
-      Question: 'Công thức tính diện tích hình tròn?',
+      Front: 'Công thức tính diện tích hình tròn?',
+      Back: 'Diện tích hình tròn = π × r²\n\nTrong đó:\n- π ≈ 3.14159\n- r là bán kính',
       Ans: 'Diện tích hình tròn = π × r²\n\nTrong đó:\n- π ≈ 3.14159\n- r là bán kính',
     },
     tags: ['math', 'geometry'],
@@ -51,7 +49,6 @@ const sampleNotes: Note[] = [
     fields: {
       Front: 'Chiến tranh thế giới thứ {{c1::hai}} kết thúc vào năm {{c2::1945}}.',
       Back: 'Chiến tranh thế giới thứ **hai** là cuộc xung đột toàn cầu lớn nhất trong lịch sử nhân loại.',
-      Question: '',
       Ans: '',
     },
     tags: ['history', 'war'],

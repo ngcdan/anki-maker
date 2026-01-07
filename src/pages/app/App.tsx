@@ -10,7 +10,7 @@ import { NoteCard, DeckSelector, TagSelector, PromptInput, NoteCardSkeleton, For
 import { PerformanceMonitor } from '../../components/PerformanceMonitor';
 import { useAnkiConnection, useOpenAI, useNoteManagement, useErrorHandler, useAddNote } from '../../hooks';
 import { ERROR_MESSAGES, DEFAULT_SETTINGS, SUCCESS_MESSAGES } from '../../constants';
-import { SuggestOptions, Note } from '../../types';
+import { SuggestOptions } from '../../types';
 import useLocalStorage from '../../useLocalStorage';
 
 function App() {
@@ -30,7 +30,7 @@ function App() {
   const { suggestNotes, isLoading: aiLoading, error: aiError } = useOpenAI();
   const { pendingNotes, actions } = useNoteManagement();
   const { handleError, handleSuccess } = useErrorHandler();
-  const { mutateAsync: addNote, isLoading: isAddingNote } = useAddNote();
+  const { mutateAsync: addNote } = useAddNote();
 
   const modelName = DEFAULT_SETTINGS.modelName;
 
