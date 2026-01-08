@@ -28,7 +28,7 @@ import FeedbackSystem, { useFeedback } from '../../components/ui/FeedbackSystem'
 
 // Import original functions
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { fetchDecks, addNote } from '../../anki';
+import { fetchDecks } from '../../anki';
 import { suggestAnkiNotes } from '../../openai';
 import { OpenAIKeyContext } from '../../OpenAIKeyContext';
 import { useContext } from 'react';
@@ -161,17 +161,6 @@ function App() {
     },
   });
 
-  // Add note mutation
-  const addNoteMutation = useMutation({
-    mutationFn: addNote,
-    onSuccess: () => {
-      feedback.success('Đã thêm thẻ vào Anki thành công!');
-    },
-    onError: (error) => {
-      feedback.error('Có lỗi khi thêm thẻ vào Anki: ' + String(error));
-    },
-  });
-
   // Stats calculations
   const stats = {
     total: pendingNotes.length,
@@ -209,22 +198,16 @@ function App() {
   };
 
   const handleCreateCard = async (note: Note) => {
+    // This is called from NoteCardModern's onCreate callback
+    // NoteCardModern already handles the actual Anki card creation with audio
+    // We only need to update the local UI state here
     try {
-      // Convert Note to addNote format
-      const ankiNote = {
-        modelName: note.modelName,
-        deckName: note.deckName,
-        fields: note.fields,
-        tags: note.tags,
-      };
-
-      await addNoteMutation.mutateAsync(ankiNote);
-      // Update note status
       setPendingNotes(prev =>
         prev.map(n => n.key === note.key ? { ...n, created: true } : n)
       );
+      feedback.success('Đã thêm thẻ vào Anki thành công!');
     } catch (error) {
-      console.error('Error creating card:', error);
+      console.error('Error updating note state:', error);
     }
   };
 

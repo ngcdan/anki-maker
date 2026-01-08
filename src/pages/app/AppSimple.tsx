@@ -7,7 +7,7 @@ import { useState, useEffect, useContext } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 
 import { NoteCard, DeckSelector, TagSelector, PromptInput, NoteCardSkeleton, FormSkeleton } from '../../components';
-import { fetchDecks, addNote } from '../../anki';
+import { fetchDecks } from '../../anki';
 import { suggestAnkiNotes } from '../../openai';
 import { OpenAIKeyContext } from '../../OpenAIKeyContext';
 import { ERROR_MESSAGES, DEFAULT_SETTINGS } from '../../constants';
@@ -122,16 +122,6 @@ function AppSimple() {
     },
   });
 
-  // Add note mutation
-  const addNoteMutation = useMutation({
-    mutationFn: addNote,
-    onSuccess: () => {
-      feedback.success('Đã thêm thẻ vào Anki thành công!');
-    },
-    onError: (error) => {
-      feedback.error('Có lỗi khi thêm thẻ vào Anki: ' + String(error));
-    },
-  });
 
   // Auto-suggest on initial prompt
   useEffect(() => {
@@ -166,23 +156,14 @@ function AppSimple() {
   };
 
   const handleNoteCreate = async (key: string) => {
-    const note = pendingNotes.find(n => n.key === key);
-    if (!note) return;
-
+    // This is called from NoteCard's onCreate callback
+    // NoteCard already handles the actual Anki card creation with audio
+    // We only need to update the local UI state here
     try {
-      // Convert Note to addNote format
-      const ankiNote = {
-        modelName: note.modelName,
-        deckName: note.deckName,
-        fields: note.fields,
-        tags: note.tags,
-      };
-
-      await addNoteMutation.mutateAsync(ankiNote);
-      // Update note status
       actions.createNote(key);
+      feedback.success('Đã thêm thẻ vào Anki thành công!');
     } catch (error) {
-      console.error('Error creating card:', error);
+      console.error('Error updating note state:', error);
     }
   };
 

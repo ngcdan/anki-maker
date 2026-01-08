@@ -66,7 +66,6 @@ export interface OpenAITTSRequest {
   voice: 'alloy' | 'echo' | 'fable' | 'onyx' | 'nova' | 'shimmer';
   response_format?: 'mp3' | 'opus' | 'aac' | 'flac';
   speed?: number; // 0.25 to 4.0
-  apiKey?: string; // API key for serverless function
 }
 
 export interface OpenAITTSResponse {

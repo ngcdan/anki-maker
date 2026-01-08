@@ -8,7 +8,7 @@ import { OpenAIKeyContext } from '../../OpenAIKeyContext';
 
 import { NoteCard, DeckSelector, TagSelector, PromptInput, NoteCardSkeleton, FormSkeleton, SettingsFab } from '../../components';
 import { PerformanceMonitor } from '../../components/PerformanceMonitor';
-import { useAnkiConnection, useOpenAI, useNoteManagement, useErrorHandler, useAddNote } from '../../hooks';
+import { useAnkiConnection, useOpenAI, useNoteManagement, useErrorHandler } from '../../hooks';
 import { ERROR_MESSAGES, DEFAULT_SETTINGS, SUCCESS_MESSAGES } from '../../constants';
 import { SuggestOptions } from '../../types';
 import useLocalStorage from '../../useLocalStorage';
@@ -30,7 +30,6 @@ function App() {
   const { suggestNotes, isLoading: aiLoading, error: aiError } = useOpenAI();
   const { pendingNotes, actions } = useNoteManagement();
   const { handleError, handleSuccess } = useErrorHandler();
-  const { mutateAsync: addNote } = useAddNote();
 
   const modelName = DEFAULT_SETTINGS.modelName;
 
@@ -71,21 +70,14 @@ function App() {
   };
 
   const handleNoteCreate = async (key: string) => {
-    // Find the note by key
-    const note = pendingNotes.find(n => n.key === key);
-    if (!note) {
-      handleError(new Error('Không tìm thấy note'), 'creating note');
-      return;
-    }
-
+    // This is called from NoteCard's onCreate callback
+    // NoteCard already handles the actual Anki card creation with audio
+    // We only need to update the local UI state here
     try {
-      // Send note to Anki using the service
-      await addNote(note);
-      // Update local state to mark as created
       actions.createNote(key);
       handleSuccess('Đã thêm thẻ vào Anki thành công!');
     } catch (error) {
-      handleError(error, 'adding note to Anki');
+      handleError(error, 'updating note state');
     }
   };
 
