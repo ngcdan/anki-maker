@@ -5,7 +5,7 @@ import { AppConfig } from './types';
 // ===============================================================================
 
 export const ENDPOINTS = {
-  ANKI_CONNECT: 'http://localhost:8765',
+  ANKI_CONNECT: 'http://127.0.0.1:8765',
   OPENAI_API: 'https://api.openai.com/v1/chat/completions',
   OPENAI_TTS: 'https://api.openai.com/v1/audio/speech',
 } as const;

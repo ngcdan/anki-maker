@@ -3,65 +3,18 @@ import { SuggestOptions, Note, ExtractedSections } from '../../shared';
 import { messages } from '../../prompts/vocab_prompt';
 
 class OpenAIService {
-  private extractSections(markdown: string, prompt: string): ExtractedSections {
-    const sections: ExtractedSections = {
-      front: '',
-      ans: '',
-      audio: '',
-      back: '',
-    };
-
-    // Extract Front section (từ đầu đến Meaning)
-    const frontMatch = markdown.match(/\*\*Word:\*\*.*?(?=\n---)/s);
-    if (frontMatch) {
-      sections.front = frontMatch[0].trim();
-    }
-
-    // Extract Audio section (các câu hội thoại)
-    const conversationMatch = markdown.match(/\*\*Conversation:\*\*\n(.*?)(?=\n\*\*Meaning:\*\*)/s);
-    if (conversationMatch) {
-      const conversationText = conversationMatch[1];
-      let answer = '';
-
-      // Process audio lines
-      sections.audio = conversationText
-        .split('\n')
-        .map(line => line.trim())
-        .filter(line => line.startsWith('- '))
-        .map(line => {
-          // Remove speaker name and colon (e.g., "Jake: ")
-          const processedLine = line.substring(line.indexOf(':') + 1).trim();
-
-          // Extract answer if line contains keyword
-          if (processedLine.toLowerCase().includes(prompt.toLowerCase())) {
-            answer = processedLine;
-          }
-
-          // Add SSML break tag at the end
-          return processedLine + ' <break time="0.4s"/>';
-        })
-        .join('\n');
-
-      sections.ans = answer;
-    }
-
-    // Extract Back section (phần Analysis trở đi)
-    const backMatch = markdown.match(/\*\*Analysis\*\*[\s\S]*$/);
-    if (backMatch) {
-      sections.back = backMatch[0].trim();
-    }
-
-    return sections;
-  }
-
   async suggestAnkiNotes(
     openAIKey: string,
-    { deckName, modelName, tags, prompt }: SuggestOptions,
-    _notes: Note[]
+    { deckName, modelName, tags, prompt }: SuggestOptions
   ): Promise<Note[]> {
+    if (!openAIKey) {
+      throw new Error(ERROR_MESSAGES.OPENAI_KEY_MISSING);
+    }
+
     try {
       const body = {
         model: 'gpt-4o-mini',
+        response_format: { type: 'json_object' },
         messages: [
           ...messages,
           {
@@ -94,14 +47,17 @@ class OpenAIService {
       }
 
       const noteContent = data.choices[0].message.content;
-      const sections = this.extractSections(noteContent, prompt);
 
-      if (sections.audio.length === 0) {
-        throw new Error(ERROR_MESSAGES.AUDIO_GENERATION);
+      let sections: ExtractedSections;
+      try {
+        sections = JSON.parse(noteContent);
+      } catch (e) {
+        throw new Error("Failed to parse JSON from AI: " + noteContent);
       }
 
-      const answer: string = sections.ans;
-      const hiddenAnswerAtFront: string = sections.front.replace(answer, '[...]');
+      if (!sections.audio || sections.audio.length === 0) {
+        throw new Error(ERROR_MESSAGES.AUDIO_GENERATION);
+      }
 
       return [
         {
@@ -109,7 +65,7 @@ class OpenAIService {
           deckName,
           modelName,
           fields: {
-            Front: hiddenAnswerAtFront,
+            Front: sections.front,
             Question: `{{c1::${sections.ans}}}`,
             Ans: sections.ans,
             Back: sections.back,

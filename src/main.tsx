@@ -12,11 +12,9 @@ import { createQueryClient } from './shared';
 import { ThemeProvider, useAppTheme } from './theme';
 import {
   LazyHomeWithChunk as Home,
-  LazySettingsWithChunk as Settings
-} from './components/LazyLoader';
-
-// Create lazy loading for app components
-const AppModern = React.lazy(() => import('./pages/App'));
+  LazySettingsWithChunk as Settings,
+  LazyAppWithChunk as AppModern
+} from './components/ui/LazyLoader';
 
 function Navigation() {
   const { mode, toggleMode } = useAppTheme();
@@ -145,7 +143,10 @@ const router = createBrowserRouter([
 // Create optimized query client
 const queryClient = createQueryClient();
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
+const rootElement = document.getElementById('root');
+if (!rootElement) throw new Error('Failed to find the root element');
+
+ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>

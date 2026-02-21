@@ -1,6 +1,18 @@
 // UI Components
-export { default as NoteCard } from './NoteCard';
-export { default as FeedbackSystem, useFeedback } from './FeedbackSystem';
+export * from './ui/LoadingSkeleton';
+export { default as LoadingSkeleton } from './ui/LoadingSkeleton';
+export { default as SettingsFab } from './ui/SettingsFab';
+export * from './ui/LazyLoader';
+
+// Note Feature Components
+export { default as NoteCard } from './notes/NoteCard';
+export { default as NoteCardMemo } from './notes/NoteCardMemo';
+
+// Generator / Dashboard Components
+export * from './generator';
+
+// Feedback Feature Components
+export { default as FeedbackSystem, useFeedback } from './feedback/FeedbackSystem';
 
 // Form Components
 export * from './forms/DeckSelector';
@@ -10,15 +22,6 @@ export { AdvancedPromptInput } from './forms/AdvancedPromptInput';
 
 // Layout Components
 export * from './layout';
-export * from './LoadingStates';
 
 // Other Components
-export { default as NoteCardMemo } from './NoteCardMemo';
 export { default as OptimizedForm } from './OptimizedForm';
-export { default as SettingsFab } from './SettingsFab';
-export {
-  default as LoadingSkeleton,
-  CardListSkeleton,
-  FormSkeleton,
-  TextSkeleton
-} from './LoadingSkeleton';

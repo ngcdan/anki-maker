@@ -6,7 +6,7 @@ interface OpenAIKeyContextProps {
   setOpenAIKey: (value: string) => void;
 }
 
-export const OpenAIKeyContext = createContext<OpenAIKeyContextProps>({ openAIKey: '', setOpenAIKey: () => { } });
+export const OpenAIKeyContext = createContext<OpenAIKeyContextProps>({ openAIKey: '', setOpenAIKey: (key) => { return key; } });
 
 interface OpenAIKeyContextProviderProps {
   children: ReactNode;

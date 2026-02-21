@@ -16,7 +16,7 @@ import {
   Delete,
   Restore,
 } from '@mui/icons-material';
-import { Note } from '../shared';
+import { Note } from '../../shared';
 
 interface NoteCardProps {
   note: Note;

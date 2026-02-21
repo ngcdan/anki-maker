@@ -1,19 +1,20 @@
-import { Box, Container, Grid, Paper, Typography, Divider, Chip, Alert, LinearProgress, Button } from '@mui/material';
-import { AutoAwesome, Settings, Psychology, TrendingUp, CheckCircle, Cancel, ClearAll } from '@mui/icons-material';
+import { Box, Container, Grid, Typography, Button, LinearProgress } from '@mui/material';
+import { AutoAwesome, Settings, Psychology, TrendingUp, CheckCircle, Cancel } from '@mui/icons-material';
 
 import { useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 
-import { DeckSelector, TagSelector, ApiKeyManager } from '../components/forms';
-import { FormSkeleton, NoteCardSkeleton } from '../components';
-import { AdvancedPromptInput } from '../components/forms/AdvancedPromptInput';
-import NoteCard from '../components/NoteCard';
-import FeedbackSystem, { useFeedback } from '../components/FeedbackSystem';
+import {
+  GeneratorConfig,
+  NotesList,
+  StatsCard,
+  StatusIndicator
+} from '../components/generator';
+import FeedbackSystem, { useFeedback } from '../components/feedback/FeedbackSystem';
 
 // Import original functions
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { ankiService } from '../services/anki';
-// import { ankiService } from '../../services/anki'; // Commented out - Anki integration disabled
 import { openaiService } from '../services/openai';
 import { OpenAIKeyContext } from '../contexts/OpenAIKeyContext';
 import { useContext } from 'react';
@@ -24,85 +25,7 @@ import { useAppTheme, gradients } from '../theme';
 import { useLocalStorage } from '../hooks';
 import { Note } from '../shared';
 
-function StatsCard({ title, value, icon, color = 'primary' }: {
-  title: string;
-  value: number;
-  icon: React.ReactNode;
-  color?: 'primary' | 'success' | 'warning' | 'error';
-}) {
-  return (
-    <Paper
-      elevation={0}
-      sx={{
-        p: 3,
-        borderRadius: 3,
-        background: `linear-gradient(135deg, ${color === 'primary' ? '#2563eb' :
-          color === 'success' ? '#10b981' :
-            color === 'warning' ? '#f59e0b' : '#ef4444'} 0%, ${color === 'primary' ? '#7c3aed' :
-              color === 'success' ? '#059669' :
-                color === 'warning' ? '#d97706' : '#dc2626'} 100%)`,
-        color: 'white',
-        position: 'relative',
-        overflow: 'hidden',
-        '&::before': {
-          content: '""',
-          position: 'absolute',
-          top: 0,
-          right: 0,
-          width: '100px',
-          height: '100px',
-          background: 'rgba(255, 255, 255, 0.1)',
-          borderRadius: '50%',
-          transform: 'translate(30px, -30px)',
-        },
-      }}
-    >
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 0.5 }}>
-            {value}
-          </Typography>
-          <Typography variant="body2" sx={{ opacity: 0.9 }}>
-            {title}
-          </Typography>
-        </Box>
-        <Box sx={{ fontSize: '2rem', opacity: 0.8 }}>
-          {icon}
-        </Box>
-      </Box>
-    </Paper>
-  );
-}
 
-function StatusIndicator({ isConnected, hasValidKey }: {
-  isConnected: boolean;
-  hasValidKey: boolean;
-}) {
-  const getStatus = () => {
-    if (!hasValidKey) return { text: 'Cần API Key', color: 'error' as const, icon: <Cancel /> };
-    if (!isConnected) return { text: 'Anki Disconnected', color: 'warning' as const, icon: <Cancel /> };
-    return { text: 'Sẵn sàng', color: 'success' as const, icon: <CheckCircle /> };
-  };
-
-  const status = getStatus();
-
-  return (
-    <Chip
-      icon={status.icon}
-      label={status.text}
-      color={status.color}
-      variant="filled"
-      sx={{
-        borderRadius: 2,
-        fontWeight: 600,
-        px: 1,
-        '& .MuiChip-icon': {
-          fontSize: '1.1rem',
-        },
-      }}
-    />
-  );
-}
 
 function App() {
   const { mode } = useAppTheme();
@@ -147,7 +70,7 @@ function App() {
         tags: currentTags,
       };
 
-      const rawNotes = await openaiService.suggestAnkiNotes(openAIKey, options, pendingNotes);
+      const rawNotes = await openaiService.suggestAnkiNotes(openAIKey, options);
 
       // Convert raw notes to proper Note format
       const convertedNotes: Note[] = rawNotes.map((rawNote: any) => ({
@@ -178,16 +101,6 @@ function App() {
     },
   });
 
-  // Add note mutation - COMMENTED OUT: Anki integration disabled
-  // const addNoteMutation = useMutation({
-  //   mutationFn: addNote,
-  //   onSuccess: () => {
-  //     feedback.success('Đã thêm thẻ vào Anki thành công!');
-  //   },
-  //   onError: (error) => {
-  //     feedback.error('Có lỗi khi thêm thẻ vào Anki: ' + String(error));
-  //   },
-  // });
 
   // Stats calculations
   const stats = {
@@ -244,9 +157,6 @@ function App() {
         fields: convertedFields,
         tags: note.tags,
       };
-
-      // COMMENTED OUT: Anki API call disabled per user request
-      // await addNoteMutation.mutateAsync(ankiNote);
 
       // Simulate successful creation without calling Anki
       console.log('Would create Anki note:', ankiNote);
@@ -393,128 +303,34 @@ function App() {
       <Grid container spacing={4}>
         {/* Left Panel - Form */}
         <Grid item xs={12} lg={4}>
-          <Paper
-            elevation={0}
-            sx={{
-              p: 4,
-              borderRadius: 3,
-              background: mode === 'dark' ? 'grey.900' : 'white',
-              border: `1px solid ${mode === 'dark' ? 'grey.800' : 'grey.200'}`,
-              position: 'sticky',
-              top: 24,
-            }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-              <Settings color="primary" />
-              <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                Cấu hình
-              </Typography>
-            </Box>
-
-            {ankiLoading ? (
-              <FormSkeleton />
-            ) : (
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                <ApiKeyManager />
-
-                <Divider />
-
-                <DeckSelector
-                  value={deckName}
-                  onChange={setDeckName}
-                  decks={decks}
-                />
-
-                <TagSelector
-                  value={currentTags}
-                  onChange={setCurrentTags}
-                />
-
-                <Divider />
-
-                <AdvancedPromptInput
-                  value={prompt}
-                  onChange={setPrompt}
-                  onSubmit={handleSuggestNotes}
-                  disabled={false} // Luôn cho phép nhập prompt
-                  loading={generateNotesMutation.isLoading}
-                />
-              </Box>
-            )}
-
-            {/* Error Display */}
-            {ankiError && (
-              <Alert severity="error" sx={{ mt: 2, borderRadius: 2 }}>
-                {String(ankiError)}
-              </Alert>
-            )}
-          </Paper>
+          <GeneratorConfig
+            mode={mode}
+            ankiLoading={ankiLoading}
+            ankiError={ankiError}
+            deckName={deckName}
+            setDeckName={setDeckName}
+            decks={decks}
+            currentTags={currentTags}
+            setCurrentTags={setCurrentTags}
+            prompt={prompt}
+            setPrompt={setPrompt}
+            handleSuggestNotes={handleSuggestNotes}
+            isLoading={generateNotesMutation.isLoading}
+          />
         </Grid>
 
         {/* Right Panel - Notes */}
         <Grid item xs={12} lg={8}>
-          <Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
-              <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                Ghi chú được tạo ({pendingNotes.length})
-              </Typography>
-              {pendingNotes.length > 0 && (
-                <Button
-                  variant="outlined"
-                  color="error"
-                  startIcon={<ClearAll />}
-                  onClick={handleClearAll}
-                  sx={{
-                    borderRadius: 2,
-                    textTransform: 'none',
-                    fontWeight: 500,
-                  }}
-                >
-                  Xóa tất cả
-                </Button>
-              )}
-            </Box>
-
-            {generateNotesMutation.isLoading ? (
-              <Grid container spacing={2} alignItems="stretch">
-                {Array.from({ length: 2 }).map((_, index) => (
-                  <NoteCardSkeleton key={`skeleton-${index}`} />
-                ))}
-              </Grid>
-            ) : pendingNotes.length === 0 ? (
-              <Paper
-                elevation={0}
-                sx={{
-                  p: 6,
-                  textAlign: 'center',
-                  borderRadius: 3,
-                  background: mode === 'dark' ? 'grey.900' : 'grey.50',
-                  border: `2px dashed ${mode === 'dark' ? 'grey.700' : 'grey.300'}`,
-                }}
-              >
-                <Psychology sx={{ fontSize: '4rem', color: 'text.secondary', mb: 2 }} />
-                <Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
-                  Chưa có ghi chú nào
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Nhập prompt và nhấn "Tạo ghi chú" để bắt đầu
-                </Typography>
-              </Paper>
-            ) : (
-              <Grid container spacing={2} alignItems="stretch">
-                {pendingNotes.map((note) => (
-                  <NoteCard
-                    key={note.key}
-                    note={note}
-                    onCreate={() => handleCreateCard(note)}
-                    onTrash={() => handleTrashNote(note.key)}
-                    onRestore={() => handleRestoreNote(note.key)}
-                    onDeletePermanent={() => handleDeletePermanent(note.key)}
-                  />
-                ))}
-              </Grid>
-            )}
-          </Box>
+          <NotesList
+            mode={mode}
+            pendingNotes={pendingNotes}
+            isLoading={generateNotesMutation.isLoading}
+            handleClearAll={handleClearAll}
+            handleCreateCard={handleCreateCard}
+            handleTrashNote={handleTrashNote}
+            handleRestoreNote={handleRestoreNote}
+            handleDeletePermanent={handleDeletePermanent}
+          />
         </Grid>
       </Grid>
 

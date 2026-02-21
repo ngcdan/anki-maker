@@ -1,0 +1,34 @@
+# DEVLOG
+
+## [2026-02-21] Fix CORS Error & Add OpenAI Tests
+**Tác giả:** Antigravity
+
+- **Fix:** Thêm kiểm tra API key trống trong `openaiService` để ngăn chặn lỗi CORS khó hiểu khi người dùng chưa cung cấp key.
+- **Test:** Thêm test unit `src/__tests__/openaiService.test.ts` cho `OpenAIService` để dễ dàng kiểm thử (cover missing key, invalid key, JSON parsing validation).
+
+## [2026-02-20] Dọn dẹp Codebase và Chuẩn bị Cloudflare Deployment
+**Tác giả:** Antigravity
+
+- **Refactor:** Xóa bỏ code comment liên quan tới Anki Connect ở `App.tsx` để làm sạch codebase.
+- **Tối ưu Prompt & Phân tích (OpenAI Service):** Nâng cấp hàm `suggestAnkiNotes()` từ Regex Text sang **OpenAI JSON Schema (Structured Outputs)**. Cấu trúc lại toàn bộ `vocab_prompt.ts` thành format JSON, triệt tiêu nguy cơ parse sai chuỗi do AI phản hồi lỗi định dạng.
+- **Cloudflare Migration:**
+  - Thay thế hệ thống config Vercel bằng cách tạo `wrangler.toml` file cấu hình native Cloudflare Pages.
+  - Thêm `_redirects` cấu hình rewrite về `index.html` (SPA fallback).
+  - Bổ sung `wrangler` CLI vào `package.json` và thêm lệnh script `deploy: "wrangler pages deploy dist"`.
+- **Kiểm thử:** Chạy thử npm run build (Vite), xác minh lỗi linter, build bundle `dist` thành công không có lỗi compile tsc.
+
+## [2026-02-21] Reorganize Codebase Structure & Refactor Generator
+**Tác giả:** Antigravity
+
+- **Tái cấu trúc (Refactor):** Phân tách component khổng lồ `App.tsx` (được đổi tên thành `Generator.tsx`) thành nhiều thành phần chuyên biệt (đáp ứng nguyên tắc separation of concerns).
+- **Tạo cấu trúc thư mục mới:** Di chuyển và nhóm các UI component vào `src/components/ui/`, chức năng hiển thị ghi chú vào `src/components/notes/`, và logic sinh thẻ Anki (GeneratorConfig, NotesList, StatsCard, StatusIndicator) vào `src/components/generator/`.
+- **Cập nhật Router & Lazy Loading:** Sửa đổi `main.tsx` và `LazyLoader` để trỏ vào `Generator.tsx`, qua đó dọn dẹp import thừa và lỗi linter trong toàn bộ repo. Xóa bỏ import các file không tồn tại.
+- **Kiểm tra trạng thái hệ thống:** Tất cả các component mới được tích hợp liền mạch. TypeScript compile (`tsc`) và build module (`Vite`) đều vượt qua không lỗi.
+
+## [2026-02-21] Fix Tests and Linter (Codebase Cleanup)
+**Tác giả:** Antigravity
+
+- **Fix:** Giải quyết tận gốc lỗi `TypeError: fetch failed` của MSW trong Vitest bằng cách thêm `server.resetHandlers()` và đảm bảo handler đọc hết `req.json()` stream.
+- **Fix:** Điều chỉnh endpoint MSW mock từ `localhost` sang `127.0.0.1` để đồng bộ với Node 18 fetch behavior và đảm bảo test chạy ổn định.
+- **Refactor:** Khôi phục cấu hình ESLint chuẩn Vite (`.eslintrc.cjs`), sửa lỗi linter do di chuyển file (khắc phục `no-empty-function`, `no-useless-escape`, `no-non-null-assertion`, và gỡ parameter không dùng tới `_notes`).
+- **Update:** Cập nhật lại logic gọi `openaiService.suggestAnkiNotes` ở các màn hình `Generator`/`hooks` để loại bỏ parameter dư thừa `existingNotes` giúp tsc compile thành công.

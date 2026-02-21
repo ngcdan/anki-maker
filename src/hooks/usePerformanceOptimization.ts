@@ -40,7 +40,7 @@ export const useDebouncedSearch = <T>(
   items: T[],
   searchTerm: string,
   filterFn: (item: T, term: string) => boolean,
-  delay: number = 300
+  delay = 300
 ) => {
   const debouncedFilterFn = useCallback(
     debounce((term: string) => {

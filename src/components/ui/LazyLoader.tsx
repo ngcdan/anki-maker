@@ -33,32 +33,31 @@ const LazyWrapper = ({
 };
 
 // Lazy loaded components
-export const LazySettings = lazy(() => import('../pages/Settings'));
-export const LazyHome = lazy(() => import('../pages/Home'));
-export const LazyPerformanceDemo = lazy(() => import('./PerformanceDemo'));
+export const LazySettings = lazy(() => import('../../pages/Settings'));
+export const LazyHome = lazy(() => import('../../pages/Home'));
+export const LazyPerformanceDemo = lazy(() => import('../PerformanceDemo'));
 
 // Optimized imports with chunk names
 const LazyAppWithChunk = lazy(() =>
-  import(/* webpackChunkName: "app" */ '../pages/App')
+  import(/* webpackChunkName: "app" */ '../../pages/Generator')
 );
 
 const LazySettingsWithChunk = lazy(() =>
-  import(/* webpackChunkName: "settings" */ '../pages/Settings')
+  import(/* webpackChunkName: "settings" */ '../../pages/Settings')
 );
 
 const LazyHomeWithChunk = lazy(() =>
-  import(/* webpackChunkName: "home" */ '../pages/Home')
+  import(/* webpackChunkName: "home" */ '../../pages/Home')
 );
 
 export const LazyPerformanceDemoWithChunk = lazy(() =>
-  import(/* webpackChunkName: "performance-demo" */ './PerformanceDemo')
+  import(/* webpackChunkName: "performance-demo" */ '../PerformanceDemo')
 );
 
 // Higher-order component for lazy loading with custom error handling
 export const withLazyLoading = <T extends object>(
   Component: React.ComponentType<T>,
-  loadingComponent?: React.ReactNode,
-  _errorComponent?: React.ReactNode // Keep for future use
+  loadingComponent?: React.ReactNode
 ) => {
   return (props: T) => (
     <LazyWrapper fallback={loadingComponent}>
@@ -76,19 +75,19 @@ export const preloadComponent = (componentImporter: () => Promise<any>) => {
 export const routeComponents = {
   home: {
     component: LazyHomeWithChunk,
-    preload: () => import(/* webpackChunkName: "home" */ '../pages/Home'),
+    preload: () => import(/* webpackChunkName: "home" */ '../../pages/Home'),
   },
   app: {
     component: LazyAppWithChunk,
-    preload: () => import(/* webpackChunkName: "app" */ '../pages/App'),
+    preload: () => import(/* webpackChunkName: "app" */ '../../pages/Generator'),
   },
   settings: {
     component: LazySettingsWithChunk,
-    preload: () => import(/* webpackChunkName: "settings" */ '../pages/Settings'),
+    preload: () => import(/* webpackChunkName: "settings" */ '../../pages/Settings'),
   },
   performanceDemo: {
     component: LazyPerformanceDemoWithChunk,
-    preload: () => import(/* webpackChunkName: "performance-demo" */ './PerformanceDemo'),
+    preload: () => import(/* webpackChunkName: "performance-demo" */ '../PerformanceDemo'),
   },
 };
 

@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { useContext } from 'react';
 import { OpenAIKeyContext } from '../contexts/OpenAIKeyContext';
-import { SuggestOptions, Note } from '../shared';
+import { SuggestOptions } from '../shared';
 import { ERROR_MESSAGES } from '../shared';
 
 // Import service (sẽ tạo sau)
@@ -11,14 +11,13 @@ export const useOpenAI = () => {
   const { openAIKey } = useContext(OpenAIKeyContext);
 
   const suggestNotesMutation = useMutation({
-    mutationFn: ({ options, existingNotes }: {
+    mutationFn: ({ options }: {
       options: SuggestOptions;
-      existingNotes: Note[]
     }) => {
       if (!openAIKey) {
         throw new Error(ERROR_MESSAGES.OPENAI_KEY_MISSING);
       }
-      return openaiService.suggestAnkiNotes(openAIKey, options, existingNotes);
+      return openaiService.suggestAnkiNotes(openAIKey, options);
     },
     onError: (error) => {
       console.error('Error suggesting notes:', error);

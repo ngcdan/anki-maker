@@ -9,10 +9,10 @@ import {
 } from '@mui/icons-material';
 import { marked } from 'marked';
 
-import { Note } from '../shared';
-import { useAddNote, useTTS } from '../hooks';
-import { OpenAIKeyContext } from '../contexts/OpenAIKeyContext';
-import { useAppTheme, gradients } from '../theme';
+import { Note } from '../../shared';
+import { useAddNote, useTTS } from '../../hooks';
+import { OpenAIKeyContext } from '../../contexts/OpenAIKeyContext';
+import { useAppTheme, gradients } from '../../theme';
 
 interface NoteCardModernProps {
   note: Note;
@@ -96,7 +96,7 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
   const handleAddNote = async () => {
     try {
       const audioTexts = currentNote.fields.Audio || '';
-      let fields = currentNote.fields;
+      const fields = currentNote.fields;
 
       // Convert markdown to HTML
       const updateFields = {
@@ -105,7 +105,7 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
         Back: marked.parse(fields.Back),
       };
 
-      let migrateNote: any = { ...currentNote, fields: updateFields };
+      const migrateNote: any = { ...currentNote, fields: updateFields };
 
       // Handle TTS audio generation with OpenAI
       if (audioTexts && openAIKey) {
