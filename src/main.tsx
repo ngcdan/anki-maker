@@ -1,6 +1,5 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { RouterProvider, createBrowserRouter, Outlet, useRouteError } from 'react-router-dom'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { AppBar, Toolbar, Typography, Container } from '@mui/material';
 import OpenAIKeyContextProvider from './contexts/OpenAIKeyContext';
@@ -30,16 +29,6 @@ class ErrorBoundary extends React.Component<
     }
     return this.props.children;
   }
-}
-
-function RouterErrorBoundary() {
-  const error = useRouteError() as Error;
-  return (
-    <Container maxWidth="sm" sx={{ mt: 8, textAlign: 'center' }}>
-      <Typography variant="h5" gutterBottom>Page Error</Typography>
-      <Typography color="text.secondary">{error?.message || 'Unknown error'}</Typography>
-    </Container>
-  );
 }
 
 function Navigation() {
@@ -73,26 +62,12 @@ function Root() {
       <OpenAIKeyContextProvider>
         <Navigation />
         <Container maxWidth="xl" sx={{ mt: 3, mb: 4 }}>
-          <Outlet />
+          <AppModern />
         </Container>
       </OpenAIKeyContextProvider>
     </ErrorBoundary>
   );
 }
-
-const router = createBrowserRouter([
-  {
-    path: "/",
-    element: <Root />,
-    errorElement: <RouterErrorBoundary />,
-    children: [
-      {
-        path: "*", // Catch all routes
-        element: <AppModern />,
-      },
-    ],
-  },
-]);
 
 // Create optimized query client
 const queryClient = createQueryClient();
@@ -103,7 +78,7 @@ if (!rootElement) throw new Error('Failed to find the root element');
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
+      <Root />
     </QueryClientProvider>
   </React.StrictMode>
 );

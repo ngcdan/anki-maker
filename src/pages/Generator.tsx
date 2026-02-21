@@ -1,7 +1,6 @@
-import { Box, Container, Grid, Typography, Button, LinearProgress } from '@mui/material';
-import { AutoAwesome, Settings } from '@mui/icons-material';
+import { Box, Container, Grid, Typography, LinearProgress } from '@mui/material';
+import { AutoAwesome } from '@mui/icons-material';
 
-import { useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 
 import {
@@ -24,8 +23,7 @@ import { Note } from '../shared';
 
 
 function App() {
-  const location = useLocation();
-  const query = new URLSearchParams(location.search);
+  const query = new URLSearchParams(window.location.search);
   const promptParam = query.get('prompt') || '';
 
   // Local state
@@ -221,19 +219,7 @@ function App() {
             </Box>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Button
-              variant="outlined"
-              size="small"
-              startIcon={<Settings />}
-              href="/settings"
-              sx={{
-                borderRadius: 2,
-                textTransform: 'none',
-                fontWeight: 500,
-              }}
-            >
-              Settings
-            </Button>
+
           </Box>
         </Box>
 

@@ -61,3 +61,11 @@
 - **Refactor:** Tinh giản bộ định tuyến `react-router-dom` trong `src/main.tsx`, gỡ tất cả menu điều hướng và thiết lập root path trỏ thẳng tới ứng dụng sinh thẻ `Generator`.
 - **Refactor:** Gỡ bỏ link hướng dẫn chuyển hướng sang `/settings` bị dư thừa bên trong sidebar `ApiKeyManager`.
 - **Verify:** `npm run build` xuất thành công không lỗi type checking. All 9 tests passed.
+
+## [2026-02-22] Remove Routing (React Router DOM)
+**Tác giả:** Antigravity
+
+- **Cleanup:** Gỡ cài đặt hoàn toàn dependency `react-router-dom` theo yêu cầu làm ứng dụng chỉ có 1 trang tĩnh duy nhất (SPA không routing).
+- **Refactor:** Chỉnh sửa `src/main.tsx` để render trực tiếp `<AppModern />` (trang Generator), xóa bỏ toàn bộ Setup Router, ErrorBoundary và Navigation bar cũ.
+- **Refactor:** Cập nhật logic thu thập param Search (`?prompt=`) trong `Generator.tsx` sang sử dụng trực tiếp Web API `window.location.search` thay vì hook `useLocation`. Khắc phục triệt để các tàn dư của thẻ Setting cũ.
+- **Verify:** Build Typescript `tsc` thành công không lỗi. `vitest run` ổn định. Ứng dụng giờ đạt độ tinh gọn tối đa.
