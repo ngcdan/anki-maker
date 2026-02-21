@@ -2,11 +2,9 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { RouterProvider, createBrowserRouter, Link, Outlet, useRouteError } from 'react-router-dom'
 import { QueryClientProvider } from '@tanstack/react-query'
-import { AppBar, Toolbar, Typography, Container, IconButton, Box } from '@mui/material';
-import { Brightness4, Brightness7 } from '@mui/icons-material';
+import { AppBar, Toolbar, Typography, Container, Box } from '@mui/material';
 import OpenAIKeyContextProvider from './contexts/OpenAIKeyContext';
 import { createQueryClient } from './shared';
-import { ThemeProvider, useAppTheme } from './theme';
 import Home from './pages/Home';
 import Settings from './pages/Settings';
 import AppModern from './pages/Generator';
@@ -47,8 +45,6 @@ function RouterErrorBoundary() {
 }
 
 function Navigation() {
-  const { mode, toggleMode } = useAppTheme();
-
   return (
     <AppBar position="static" elevation={0}>
       <Toolbar>
@@ -85,21 +81,6 @@ function Navigation() {
           >
             Settings
           </Typography>
-
-          <IconButton
-            onClick={toggleMode}
-            color="inherit"
-            sx={{
-              borderRadius: 2,
-              transition: 'all 0.2s ease',
-              '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                transform: 'scale(1.05)',
-              },
-            }}
-          >
-            {mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
-          </IconButton>
         </Box>
       </Toolbar>
     </AppBar>
@@ -153,10 +134,8 @@ if (!rootElement) throw new Error('Failed to find the root element');
 
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
-    <ThemeProvider>
-      <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
-      </QueryClientProvider>
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>
   </React.StrictMode>
 );

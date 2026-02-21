@@ -12,7 +12,6 @@ import { marked } from 'marked';
 import { Note } from '../shared';
 import { useAddNote, useTTS } from '../hooks';
 import { OpenAIKeyContext } from '../contexts/OpenAIKeyContext';
-import { useAppTheme, gradients } from '../theme';
 
 interface NoteCardModernProps {
   note: Note;
@@ -30,7 +29,7 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
   onDeletePermanent
 }) => {
   const theme = useTheme();
-  const { mode } = useAppTheme();
+
   const [currentNote, setCurrentNote] = useState(note);
   const [expanded, setExpanded] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
@@ -180,18 +179,16 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
           overflow: 'visible',
           borderRadius: 3,
           borderLeft: `4px solid ${cardStatus.borderColor}`,
-          backgroundColor: mode === 'dark' ? 'grey.900' : 'background.paper',
-          boxShadow: mode === 'dark'
-            ? '0 8px 32px rgba(0, 0, 0, 0.3)'
-            : '0 4px 20px rgba(0, 0, 0, 0.08)',
+          backgroundColor: 'background.paper',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
           transition: 'all 0.3s ease',
           opacity: trashed ? 0.6 : 1,
           filter: trashed ? 'grayscale(50%)' : 'none',
           '&:hover': {
             transform: trashed ? 'none' : 'translateY(-2px)',
             boxShadow: trashed
-              ? (mode === 'dark' ? '0 8px 32px rgba(0, 0, 0, 0.3)' : '0 4px 20px rgba(0, 0, 0, 0.08)')
-              : (mode === 'dark' ? '0 12px 40px rgba(0, 0, 0, 0.4)' : '0 8px 30px rgba(0, 0, 0, 0.12)'),
+              ? '0 4px 20px rgba(0, 0, 0, 0.08)'
+              : '0 8px 30px rgba(0, 0, 0, 0.12)',
           },
         }}
       >
@@ -282,8 +279,9 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
                       mt: 0.5,
                       p: 1.5,
                       borderRadius: 1,
-                      backgroundColor: mode === 'dark' ? 'grey.800' : 'grey.50',
-                      border: `1px solid ${mode === 'dark' ? 'grey.700' : 'grey.200'}`,
+                      backgroundColor: 'grey.50',
+                      border: '1px solid',
+                      borderColor: 'grey.200',
                     }}
                     dangerouslySetInnerHTML={{
                       __html: marked.parse(fields.Front || fields.Question || '')
@@ -301,8 +299,9 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
                       mt: 0.5,
                       p: 1.5,
                       borderRadius: 1,
-                      backgroundColor: mode === 'dark' ? 'grey.800' : 'grey.50',
-                      border: `1px solid ${mode === 'dark' ? 'grey.700' : 'grey.200'}`,
+                      backgroundColor: 'grey.50',
+                      border: '1px solid',
+                      borderColor: 'grey.200',
                     }}
                     dangerouslySetInnerHTML={{
                       __html: marked.parse(fields.Back || fields.Ans || '')
@@ -604,9 +603,9 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
                   textTransform: 'none',
                   fontWeight: 600,
                   px: 3,
-                  background: !isDisabled ? gradients.primary : undefined,
+                  bgcolor: !isDisabled ? 'primary.main' : undefined,
                   '&:hover': {
-                    background: !isDisabled ? gradients.primary : undefined,
+                    bgcolor: !isDisabled ? 'primary.main' : undefined,
                   },
                 }}
               >

@@ -5,7 +5,6 @@ import NoteCard from './NoteCard';
 import { Note } from '../shared';
 
 interface NotesListProps {
-  mode: 'light' | 'dark';
   pendingNotes: Note[];
   isLoading: boolean;
   handleClearAll: () => void;
@@ -16,7 +15,6 @@ interface NotesListProps {
 }
 
 export function NotesList({
-  mode,
   pendingNotes,
   isLoading,
   handleClearAll,
@@ -61,8 +59,9 @@ export function NotesList({
             p: 6,
             textAlign: 'center',
             borderRadius: 3,
-            background: mode === 'dark' ? 'grey.900' : 'grey.50',
-            border: `2px dashed ${mode === 'dark' ? 'grey.700' : 'grey.300'}`,
+            background: 'grey.50',
+            border: '2px dashed',
+            borderColor: 'grey.300',
           }}
         >
           <Psychology sx={{ fontSize: '4rem', color: 'text.secondary', mb: 2 }} />

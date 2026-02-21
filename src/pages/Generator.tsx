@@ -18,14 +18,12 @@ import { useContext } from 'react';
 import { marked } from 'marked';
 
 import { DEFAULT_SETTINGS } from '../shared';
-import { useAppTheme, gradients } from '../theme';
 import { useLocalStorage } from '../hooks';
 import { Note } from '../shared';
 
 
 
 function App() {
-  const { mode } = useAppTheme();
   const location = useLocation();
   const query = new URLSearchParams(location.search);
   const promptParam = query.get('prompt') || '';
@@ -203,7 +201,7 @@ function App() {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Box
               sx={{
-                background: gradients.primary,
+                bgcolor: 'primary.main',
                 borderRadius: 2,
                 p: 1.5,
                 display: 'flex',
@@ -246,7 +244,7 @@ function App() {
               sx={{
                 borderRadius: 1,
                 height: 6,
-                backgroundColor: mode === 'dark' ? 'grey.800' : 'grey.200',
+                backgroundColor: 'grey.200',
               }}
             />
             <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
@@ -264,7 +262,6 @@ function App() {
         {/* Left Panel - Form */}
         <Grid item xs={12} lg={4}>
           <GeneratorConfig
-            mode={mode}
             ankiLoading={ankiLoading}
             ankiError={ankiError}
             deckName={deckName}
@@ -282,7 +279,6 @@ function App() {
         {/* Right Panel - Notes */}
         <Grid item xs={12} lg={8}>
           <NotesList
-            mode={mode}
             pendingNotes={pendingNotes}
             isLoading={generateNotesMutation.isLoading}
             handleClearAll={handleClearAll}

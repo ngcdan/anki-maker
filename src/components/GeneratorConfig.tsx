@@ -4,7 +4,6 @@ import { ApiKeyManager, DeckSelector, TagSelector, AdvancedPromptInput } from '.
 
 
 interface GeneratorConfigProps {
-  mode: 'light' | 'dark';
   ankiLoading: boolean;
   ankiError: unknown;
   deckName: string;
@@ -19,7 +18,6 @@ interface GeneratorConfigProps {
 }
 
 export function GeneratorConfig({
-  mode,
   ankiLoading,
   ankiError,
   deckName,
@@ -37,8 +35,9 @@ export function GeneratorConfig({
       sx={{
         p: 4,
         borderRadius: 3,
-        background: mode === 'dark' ? 'grey.900' : 'white',
-        border: `1px solid ${mode === 'dark' ? 'grey.800' : 'grey.200'}`,
+        background: 'white',
+        border: '1px solid',
+        borderColor: 'grey.200',
         position: 'sticky',
         top: 24,
       }}

@@ -46,3 +46,10 @@
 - **Fix:** Phục hồi file `vocab_prompt.ts` bị xóa nhầm từ commit trước; sửa lỗi broken imports khiến project không thể build trong `main.tsx`, `useTTS.ts`, `TagSelector.tsx`, `ApiKeyManager.tsx`.
 - **Refactor:** Di dời thư mục `src/__tests__/` ra root `tests/` để tổ chức lại cấu trúc sạch hơn; dọn dẹp các hằng số không dùng trong `theme/index.ts`.
 - **Verify:** `npm run build` và `vitest run` đều thành công không lỗi.
+
+## [2026-02-22] Remove Theme Module
+**Tác giả:** Antigravity
+
+- **Refactor:** Gỡ bỏ hoàn toàn logic `theme` (light/dark mode) khỏi `src/main.tsx`, `Generator.tsx`, `NotesList.tsx`, `GeneratorConfig.tsx`, `NoteCard.tsx` và xóa bỏ toàn bộ thư mục `src/theme/`.
+- **Cleanup:** Xóa bỏ các state và components dư thừa phục vụ cho việc đổi màu sắc (gradients, mode toggler).
+- **Verify:** `npm run build` (tsc) và `vitest run` vượt qua thành công, đảm bảo không có broken import nào sót lại.
