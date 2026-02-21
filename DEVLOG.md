@@ -69,3 +69,11 @@
 - **Refactor:** Chỉnh sửa `src/main.tsx` để render trực tiếp `<AppModern />` (trang Generator), xóa bỏ toàn bộ Setup Router, ErrorBoundary và Navigation bar cũ.
 - **Refactor:** Cập nhật logic thu thập param Search (`?prompt=`) trong `Generator.tsx` sang sử dụng trực tiếp Web API `window.location.search` thay vì hook `useLocation`. Khắc phục triệt để các tàn dư của thẻ Setting cũ.
 - **Verify:** Build Typescript `tsc` thành công không lỗi. `vitest run` ổn định. Ứng dụng giờ đạt độ tinh gọn tối đa.
+
+## [2026-02-22] Compact UI Simplification
+**Tác giả:** Antigravity
+
+- **Cleanup:** Xóa bỏ hoàn toàn Component NavBar (`Navigation` component) trong App Shell `main.tsx`. Giảm bớt thẻ wrapper dư thừa.
+- **Cleanup:** Xóa bỏ nguyên một Block Banner chiếm không gian chứa title `AI Card Generator` và nút bấm setting trên màn hình `Generator.tsx`.
+- **Refactor:** Mở rộng Container ở `Generator.tsx` từ `maxWidth="xl"` sang Full-width (`maxWidth={false}`) và giảm Padding xuống mức tối thiểu (`p: 1`). Thanh Tiến trình Loading (Progress Bar) được đưa lên trên.
+- **Verify:** Áp dụng thiết kế Minimalist thành công (cực kỳ gọn gàng cho việc chỉ thao tác tạo thẻ Anki). Build pass. Test pass 9/9.

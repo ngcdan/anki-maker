@@ -1,5 +1,4 @@
 import { Box, Container, Grid, Typography, LinearProgress } from '@mui/material';
-import { AutoAwesome } from '@mui/icons-material';
 
 import { useState, useEffect } from 'react';
 
@@ -192,53 +191,22 @@ function App() {
   const showProgress = generateNotesMutation.isLoading;
 
   return (
-    <Container maxWidth="xl" sx={{ py: 2 }}>
-      {/* Header Section */}
-      <Box sx={{ mb: 4 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Box
-              sx={{
-                bgcolor: 'primary.main',
-                borderRadius: 2,
-                p: 1.5,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <AutoAwesome sx={{ color: 'white', fontSize: '1.5rem' }} />
-            </Box>
-            <Box>
-              <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 0.5 }}>
-                AI Card Generator
-              </Typography>
-              <Typography variant="body1" color="text.secondary">
-                Tạo flashcards thông minh với AI
-              </Typography>
-            </Box>
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-
-          </Box>
+    <Container maxWidth={false} sx={{ p: 1, px: 2, height: '100%', display: 'flex', flexDirection: 'column' }}>
+      {/* Progress Bar (if generating) */}
+      {showProgress && (
+        <Box sx={{ mb: 2 }}>
+          <LinearProgress
+            sx={{
+              borderRadius: 1,
+              height: 4,
+              backgroundColor: 'grey.200',
+            }}
+          />
+          <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+            Đang tạo ghi chú với AI...
+          </Typography>
         </Box>
-
-        {/* Progress Bar */}
-        {showProgress && (
-          <Box sx={{ mb: 2 }}>
-            <LinearProgress
-              sx={{
-                borderRadius: 1,
-                height: 6,
-                backgroundColor: 'grey.200',
-              }}
-            />
-            <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
-              Đang tạo ghi chú với AI...
-            </Typography>
-          </Box>
-        )}
-      </Box>
+      )}
 
       {/* Stats Cards */}
 
