@@ -8,7 +8,6 @@ import {
   Chip,
   Alert,
   Collapse,
-  Button,
   Link,
 } from '@mui/material';
 import {
@@ -17,7 +16,6 @@ import {
   Key,
   ExpandMore,
   ExpandLess,
-  Settings as SettingsIcon,
 } from '@mui/icons-material';
 import { useOpenAIKey } from '../hooks/useOpenAI';
 
@@ -118,14 +116,6 @@ export const ApiKeyManager: React.FC = () => {
                 OpenAI
               </Link>
             </Typography>
-            <Button
-              size="small"
-              startIcon={<SettingsIcon />}
-              href="/settings"
-              sx={{ textTransform: 'none', fontSize: '0.75rem' }}
-            >
-              Settings
-            </Button>
           </Box>
         </Box>
       </Collapse>

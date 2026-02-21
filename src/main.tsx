@@ -1,12 +1,10 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { RouterProvider, createBrowserRouter, Link, Outlet, useRouteError } from 'react-router-dom'
+import { RouterProvider, createBrowserRouter, Outlet, useRouteError } from 'react-router-dom'
 import { QueryClientProvider } from '@tanstack/react-query'
-import { AppBar, Toolbar, Typography, Container, Box } from '@mui/material';
+import { AppBar, Toolbar, Typography, Container } from '@mui/material';
 import OpenAIKeyContextProvider from './contexts/OpenAIKeyContext';
 import { createQueryClient } from './shared';
-import Home from './pages/Home';
-import Settings from './pages/Settings';
 import AppModern from './pages/Generator';
 
 // Inline ErrorBoundary — replaces deleted components/layout module
@@ -50,8 +48,6 @@ function Navigation() {
       <Toolbar>
         <Typography
           variant="h6"
-          component={Link}
-          to="/"
           color="inherit"
           sx={{
             textDecoration: 'none',
@@ -66,22 +62,6 @@ function Navigation() {
           Anki Card Creator
         </Typography>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Typography
-            component={Link}
-            to="/settings"
-            color="inherit"
-            sx={{
-              textDecoration: 'none',
-              fontWeight: 500,
-              '&:hover': {
-                color: 'primary.main',
-              },
-            }}
-          >
-            Settings
-          </Typography>
-        </Box>
       </Toolbar>
     </AppBar>
   );
@@ -107,19 +87,7 @@ const router = createBrowserRouter([
     errorElement: <RouterErrorBoundary />,
     children: [
       {
-        path: "",
-        element: <Home />,
-      },
-      {
-        path: "settings",
-        element: <Settings />,
-      },
-      {
-        path: "suggest",
-        element: <AppModern />,
-      },
-      {
-        path: "app",
+        path: "*", // Catch all routes
         element: <AppModern />,
       },
     ],

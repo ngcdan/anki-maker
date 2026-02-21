@@ -53,3 +53,11 @@
 - **Refactor:** Gỡ bỏ hoàn toàn logic `theme` (light/dark mode) khỏi `src/main.tsx`, `Generator.tsx`, `NotesList.tsx`, `GeneratorConfig.tsx`, `NoteCard.tsx` và xóa bỏ toàn bộ thư mục `src/theme/`.
 - **Cleanup:** Xóa bỏ các state và components dư thừa phục vụ cho việc đổi màu sắc (gradients, mode toggler).
 - **Verify:** `npm run build` (tsc) và `vitest run` vượt qua thành công, đảm bảo không có broken import nào sót lại.
+
+## [2026-02-22] Consolidate App to Single Screen
+**Tác giả:** Antigravity
+
+- **Cleanup:** Xóa bỏ hoàn toàn các trang vệ tinh dư thừa `src/pages/Home.tsx` và `src/pages/Settings.tsx` do đã tích hợp hết thiết lập vào sidebar màn hình chính.
+- **Refactor:** Tinh giản bộ định tuyến `react-router-dom` trong `src/main.tsx`, gỡ tất cả menu điều hướng và thiết lập root path trỏ thẳng tới ứng dụng sinh thẻ `Generator`.
+- **Refactor:** Gỡ bỏ link hướng dẫn chuyển hướng sang `/settings` bị dư thừa bên trong sidebar `ApiKeyManager`.
+- **Verify:** `npm run build` xuất thành công không lỗi type checking. All 9 tests passed.
