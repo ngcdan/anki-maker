@@ -1,7 +1,7 @@
-import { Box, Typography, Divider, Alert } from '@mui/material';
+import { Box, Typography, Divider, Alert, CircularProgress } from '@mui/material';
 import { Settings } from '@mui/icons-material';
 import { ApiKeyManager, DeckSelector, TagSelector, AdvancedPromptInput } from '../forms';
-import { FormSkeleton } from '../ui/LoadingSkeleton';
+
 
 interface GeneratorConfigProps {
   mode: 'light' | 'dark';
@@ -51,7 +51,9 @@ export function GeneratorConfig({
       </Box>
 
       {ankiLoading ? (
-        <FormSkeleton />
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+          <CircularProgress />
+        </Box>
       ) : (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           <ApiKeyManager />

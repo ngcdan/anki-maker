@@ -32,3 +32,9 @@
 - **Fix:** Điều chỉnh endpoint MSW mock từ `localhost` sang `127.0.0.1` để đồng bộ với Node 18 fetch behavior và đảm bảo test chạy ổn định.
 - **Refactor:** Khôi phục cấu hình ESLint chuẩn Vite (`.eslintrc.cjs`), sửa lỗi linter do di chuyển file (khắc phục `no-empty-function`, `no-useless-escape`, `no-non-null-assertion`, và gỡ parameter không dùng tới `_notes`).
 - **Update:** Cập nhật lại logic gọi `openaiService.suggestAnkiNotes` ở các màn hình `Generator`/`hooks` để loại bỏ parameter dư thừa `existingNotes` giúp tsc compile thành công.
+## [2026-02-21] Core App Simplification
+**Tác giả:** Antigravity
+
+- **Refactor:** Loại bỏ hoàn toàn các thành phần UI mở rộng không quan trọng (`LazyLoader`, `LoadingSkeleton`, `StatsCard`, `StatusIndicator`, `FeedbackSystem`) theo yêu cầu thu gọn ứng dụng.
+- **Update:** Đơn giản hóa cấu hình Router tại `src/main.tsx` bằng cách chuyển về Import tĩnh (static import) thay vì chia nhỏ bundle bằng Suspense.
+- **Update:** Đơn giản hóa UI phản hồi của `Generator.tsx` về mức nguyên thủy (Vanilla `alert`/`console.log`) để giữ cho core app hoạt động mà không cồng kềnh.

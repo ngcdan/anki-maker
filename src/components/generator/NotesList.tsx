@@ -1,7 +1,7 @@
-import { Box, Typography, Button, Grid, Paper } from '@mui/material';
+import { Box, Typography, Button, Grid, Paper, CircularProgress } from '@mui/material';
 import { ClearAll, Psychology } from '@mui/icons-material';
 import NoteCard from '../notes/NoteCard';
-import { CardListSkeleton } from '../ui/LoadingSkeleton';
+
 import { Note } from '../../shared';
 
 interface NotesListProps {
@@ -51,7 +51,9 @@ export function NotesList({
       </Box>
 
       {isLoading ? (
-        <CardListSkeleton />
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+          <CircularProgress />
+        </Box>
       ) : pendingNotes.length === 0 ? (
         <Paper
           elevation={0}

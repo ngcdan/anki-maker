@@ -1,16 +1,13 @@
 import { Box, Container, Grid, Typography, Button, LinearProgress } from '@mui/material';
-import { AutoAwesome, Settings, Psychology, TrendingUp, CheckCircle, Cancel } from '@mui/icons-material';
+import { AutoAwesome, Settings } from '@mui/icons-material';
 
 import { useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 
 import {
   GeneratorConfig,
-  NotesList,
-  StatsCard,
-  StatusIndicator
+  NotesList
 } from '../components/generator';
-import FeedbackSystem, { useFeedback } from '../components/feedback/FeedbackSystem';
 
 // Import original functions
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -43,8 +40,13 @@ function App() {
   const { openAIKey } = useContext(OpenAIKeyContext);
   const hasValidKey = openAIKey && openAIKey.startsWith('sk-') && openAIKey.length > 20;
 
-  // Feedback system
-  const feedback = useFeedback();
+  // Simple feedback fallback
+  const feedback = {
+    success: (msg: string) => console.log(msg),
+    error: (msg: string) => alert(msg),
+    warning: (msg: string) => alert(msg),
+    info: (msg: string) => console.log(msg),
+  };
 
   // Fetch Anki data
   const { data: decks = [], isLoading: decksLoading, error: decksError } = useQuery({
@@ -102,13 +104,7 @@ function App() {
   });
 
 
-  // Stats calculations
-  const stats = {
-    total: pendingNotes.length,
-    created: pendingNotes.filter(note => note.created).length,
-    pending: pendingNotes.filter(note => !note.created && !note.trashed).length,
-    trashed: pendingNotes.filter(note => note.trashed).length,
-  };
+
 
   // Auto-suggest on initial prompt
   useEffect(() => {
@@ -134,7 +130,7 @@ function App() {
       return;
     }
 
-    feedback.info('Đang tạo thẻ học từ nội dung của bạn...', { duration: 2000 });
+    feedback.info('Đang tạo thẻ học từ nội dung của bạn...');
     generateNotesMutation.mutate(prompt.trim());
   };
 
@@ -227,7 +223,6 @@ function App() {
             </Box>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <StatusIndicator isConnected={isConnected} hasValidKey={hasValidKey} />
             <Button
               variant="outlined"
               size="small"
@@ -262,42 +257,7 @@ function App() {
       </Box>
 
       {/* Stats Cards */}
-      {stats.total > 0 && (
-        <Grid container spacing={3} sx={{ mb: 4 }}>
-          <Grid item xs={6} sm={3}>
-            <StatsCard
-              title="Tổng cộng"
-              value={stats.total}
-              icon={<Psychology />}
-              color="primary"
-            />
-          </Grid>
-          <Grid item xs={6} sm={3}>
-            <StatsCard
-              title="Đã tạo"
-              value={stats.created}
-              icon={<CheckCircle />}
-              color="success"
-            />
-          </Grid>
-          <Grid item xs={6} sm={3}>
-            <StatsCard
-              title="Chờ xử lý"
-              value={stats.pending}
-              icon={<TrendingUp />}
-              color="warning"
-            />
-          </Grid>
-          <Grid item xs={6} sm={3}>
-            <StatsCard
-              title="Đã xóa"
-              value={stats.trashed}
-              icon={<Cancel />}
-              color="error"
-            />
-          </Grid>
-        </Grid>
-      )}
+
 
       {/* Main Content */}
       <Grid container spacing={4}>
@@ -334,13 +294,6 @@ function App() {
         </Grid>
       </Grid>
 
-      {/* Enhanced Feedback System */}
-      <FeedbackSystem
-        messages={feedback.messages}
-        onDismiss={feedback.dismissMessage}
-        position="top-right"
-        maxVisible={3}
-      />
     </Container>
   );
 }
