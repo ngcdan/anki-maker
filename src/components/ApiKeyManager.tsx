@@ -19,7 +19,7 @@ import {
   ExpandLess,
   Settings as SettingsIcon,
 } from '@mui/icons-material';
-import { useOpenAIKey } from '../../../hooks/useOpenAI';
+import { useOpenAIKey } from '../hooks/useOpenAI';
 
 export const ApiKeyManager: React.FC = () => {
   const { openAIKey, setOpenAIKey, hasValidKey } = useOpenAIKey();

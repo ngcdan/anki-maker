@@ -38,3 +38,11 @@
 - **Refactor:** Loại bỏ hoàn toàn các thành phần UI mở rộng không quan trọng (`LazyLoader`, `LoadingSkeleton`, `StatsCard`, `StatusIndicator`, `FeedbackSystem`) theo yêu cầu thu gọn ứng dụng.
 - **Update:** Đơn giản hóa cấu hình Router tại `src/main.tsx` bằng cách chuyển về Import tĩnh (static import) thay vì chia nhỏ bundle bằng Suspense.
 - **Update:** Đơn giản hóa UI phản hồi của `Generator.tsx` về mức nguyên thủy (Vanilla `alert`/`console.log`) để giữ cho core app hoạt động mà không cồng kềnh.
+
+## [2026-02-22] Project Cleanup & Restructure
+**Tác giả:** Antigravity
+
+- **Cleanup:** Xóa 9 files/thư mục rác (`fix_imports.cjs`, `docs/useQuery_useMutation.md`, `NoteCardMemo.tsx`, `PromptInput.tsx`, thư mục `ui/`, `react.svg`, v.v.).
+- **Fix:** Phục hồi file `vocab_prompt.ts` bị xóa nhầm từ commit trước; sửa lỗi broken imports khiến project không thể build trong `main.tsx`, `useTTS.ts`, `TagSelector.tsx`, `ApiKeyManager.tsx`.
+- **Refactor:** Di dời thư mục `src/__tests__/` ra root `tests/` để tổ chức lại cấu trúc sạch hơn; dọn dẹp các hằng số không dùng trong `theme/index.ts`.
+- **Verify:** `npm run build` và `vitest run` đều thành công không lỗi.

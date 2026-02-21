@@ -1,6 +1,6 @@
-import { ENDPOINTS, ERROR_MESSAGES } from '../../shared';
-import { SuggestOptions, Note, ExtractedSections } from '../../shared';
-import { messages } from '../../prompts/vocab_prompt';
+import { ENDPOINTS, ERROR_MESSAGES } from '../shared';
+import { SuggestOptions, Note, ExtractedSections } from '../shared';
+import { messages } from '../shared/vocab_prompt';
 
 class OpenAIService {
   async suggestAnkiNotes(

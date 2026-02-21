@@ -5,7 +5,7 @@ import { SuggestOptions } from '../shared';
 import { ERROR_MESSAGES } from '../shared';
 
 // Import service (sẽ tạo sau)
-import { openaiService } from '../services/openai';
+import { openaiService } from '../services/openaiService';
 
 export const useOpenAI = () => {
   const { openAIKey } = useContext(OpenAIKeyContext);

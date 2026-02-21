@@ -1,5 +1,5 @@
-import { ENDPOINTS, ERROR_MESSAGES } from '../../shared';
-import { OpenAITTSRequest, OpenAITTSResponse } from '../../shared';
+import { ENDPOINTS, ERROR_MESSAGES } from '../shared';
+import { OpenAITTSRequest, OpenAITTSResponse } from '../shared';
 
 class TTSService {
   async generateAudioWithOpenAI(

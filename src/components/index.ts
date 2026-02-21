@@ -1,17 +1,7 @@
-// UI Components
-
-// Note Feature Components
-export { default as NoteCard } from './notes/NoteCard';
-export { default as NoteCardMemo } from './notes/NoteCardMemo';
-
-// Generator / Dashboard Components
-export * from './generator';
-
-// Form Components
-export * from './forms/DeckSelector';
-export * from './forms/TagSelector';
-export * from './forms/PromptInput';
-export { AdvancedPromptInput } from './forms/AdvancedPromptInput';
-
-// Layout Components
-export * from './layout';
+export { default as NoteCard } from './NoteCard';
+export * from './GeneratorConfig';
+export * from './NotesList';
+export { DeckSelector } from './DeckSelector';
+export { TagSelector } from './TagSelector';
+export { AdvancedPromptInput } from './AdvancedPromptInput';
+export { ApiKeyManager } from './ApiKeyManager';

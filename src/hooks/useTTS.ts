@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { ttsService } from '../services';
-import { useErrorHandler } from './useErrorHandler';
+import { ttsService } from '../services/ttsService';
 
 export interface UseTTSOptions {
   voice?: 'alloy' | 'echo' | 'fable' | 'onyx' | 'nova' | 'shimmer';
@@ -10,7 +9,6 @@ export interface UseTTSOptions {
 
 export const useTTS = () => {
   const [isGenerating, setIsGenerating] = useState(false);
-  const { handleError, handleSuccess } = useErrorHandler();
 
   const generateAudio = async (
     text: string,
@@ -18,7 +16,7 @@ export const useTTS = () => {
     options: UseTTSOptions = {}
   ): Promise<{ audioBuffer: ArrayBuffer; fileName: string } | null> => {
     if (!text || !openAIKey) {
-      handleError(new Error('Text và OpenAI key là bắt buộc'));
+      console.error('Text và OpenAI key là bắt buộc');
       return null;
     }
 
@@ -30,10 +28,9 @@ export const useTTS = () => {
         model: options.model || 'tts-1',
       });
 
-      handleSuccess('Đã tạo audio thành công!');
       return audioResponse;
     } catch (error) {
-      handleError(error, 'TTS generation');
+      console.error('TTS generation error:', error);
       return null;
     } finally {
       setIsGenerating(false);

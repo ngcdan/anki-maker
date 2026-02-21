@@ -3,7 +3,7 @@ import { QUERY_KEYS, ERROR_MESSAGES } from '../shared';
 import { Note } from '../shared';
 
 // Import services (sẽ tạo sau)
-import { ankiService } from '../services/anki';
+import { ankiService } from '../services/ankiService';
 
 export const useDecks = () => {
   return useQuery({

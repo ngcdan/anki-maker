@@ -1,8 +1,8 @@
 import { Box, Typography, Button, Grid, Paper, CircularProgress } from '@mui/material';
 import { ClearAll, Psychology } from '@mui/icons-material';
-import NoteCard from '../notes/NoteCard';
+import NoteCard from './NoteCard';
 
-import { Note } from '../../shared';
+import { Note } from '../shared';
 
 interface NotesListProps {
   mode: 'light' | 'dark';

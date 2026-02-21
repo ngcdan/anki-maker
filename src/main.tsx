@@ -1,18 +1,50 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { RouterProvider, createBrowserRouter, Link } from 'react-router-dom'
+import { RouterProvider, createBrowserRouter, Link, Outlet, useRouteError } from 'react-router-dom'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { AppBar, Toolbar, Typography, Container, IconButton, Box } from '@mui/material';
 import { Brightness4, Brightness7 } from '@mui/icons-material';
 import OpenAIKeyContextProvider from './contexts/OpenAIKeyContext';
-import { ErrorBoundary, ToastProvider } from './components/layout';
-import { RouterOutlet } from './components/RouterOutlet';
-import { RouterErrorBoundary } from './components/RouterErrorBoundary';
 import { createQueryClient } from './shared';
 import { ThemeProvider, useAppTheme } from './theme';
 import Home from './pages/Home';
 import Settings from './pages/Settings';
 import AppModern from './pages/Generator';
+
+// Inline ErrorBoundary — replaces deleted components/layout module
+class ErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean; error: Error | null }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <Container maxWidth="sm" sx={{ mt: 8, textAlign: 'center' }}>
+          <Typography variant="h5" gutterBottom>Something went wrong</Typography>
+          <Typography color="text.secondary">{this.state.error?.message}</Typography>
+        </Container>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+function RouterErrorBoundary() {
+  const error = useRouteError() as Error;
+  return (
+    <Container maxWidth="sm" sx={{ mt: 8, textAlign: 'center' }}>
+      <Typography variant="h5" gutterBottom>Page Error</Typography>
+      <Typography color="text.secondary">{error?.message || 'Unknown error'}</Typography>
+    </Container>
+  );
+}
 
 function Navigation() {
   const { mode, toggleMode } = useAppTheme();
@@ -77,14 +109,12 @@ function Navigation() {
 function Root() {
   return (
     <ErrorBoundary>
-      <ToastProvider>
-        <OpenAIKeyContextProvider>
-          <Navigation />
-          <Container maxWidth="xl" sx={{ mt: 3, mb: 4 }}>
-            <RouterOutlet />
-          </Container>
-        </OpenAIKeyContextProvider>
-      </ToastProvider>
+      <OpenAIKeyContextProvider>
+        <Navigation />
+        <Container maxWidth="xl" sx={{ mt: 3, mb: 4 }}>
+          <Outlet />
+        </Container>
+      </OpenAIKeyContextProvider>
     </ErrorBoundary>
   );
 }

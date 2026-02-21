@@ -20,25 +20,15 @@ Integrates with local Anki desktop via AnkiConnect plugin and optional TTS servi
 ```typescript
 // Modern services layer - all API operations consolidated
 src/services/
-├── anki/
-│   ├── ankiService.ts    // Class-based AnkiConnect wrapper
-│   └── index.ts         // Export ankiService
-├── openai/
-│   ├── openaiService.ts // OpenAI API with streaming
-│   ├── ttsService.ts    // Audio generation service
-│   └── index.ts         // Export services
-└── index.ts            // Main services export
-
-// AI Prompt Templates
-src/prompts/
-├── vocab_prompt.ts      // Vietnamese English learners
-└── index.ts            // Export prompts
+├── ankiService.ts       // Class-based AnkiConnect wrapper
+├── openaiService.ts     // OpenAI API with streaming
+└── ttsService.ts        // Audio generation service
 
 // React Context & Shared Utilities
 src/contexts/            // React context providers (OpenAI key)
-src/shared/              // Consolidated utilities (types, constants, utils)
+src/shared/              // Consolidated utilities (types, constants, utils, prompts)
 src/hooks/               // Custom React hooks (useAnki, useOpenAI, etc.)
-src/__tests__/           // All test files
+tests/                   // All test files
 ```
 
 ### Note Structure (Basic_cloze Model)
@@ -74,7 +64,7 @@ pnpm preview               # Test production build
 - **Focus**: Only test external API integrations (Anki, OpenAI)
 - **MSW**: Mock AnkiConnect API calls (see `anki.test.ts` pattern)
 - **Setup**: `tests/setup.js` configures testing-library matchers for API tests
-- **Test Location**: All tests consolidated in `src/__tests__/` directory
+- **Test Location**: All tests consolidated in `tests/` directory
 - **Pattern**: Mock external services, test data transformations, avoid UI component tests
 
 ### Environment Requirements
@@ -110,14 +100,14 @@ pnpm preview               # Test production build
 
 ### Adding New Features
 - **New card types**: `src/shared/types.ts` + `docs/anki-basic-cloze-format.md` (comprehensive format spec)
-- **AI behavior**: Edit prompt templates in `prompts/vocab_prompt.ts` + modify parsing in `services/openai/openaiService.ts`
-- **Anki operations**: Extend `ankiService.ts` class methods
+- **AI behavior**: Edit prompt templates in `src/shared/vocab_prompt.ts` + modify parsing in `src/services/openaiService.ts`
+- **Anki operations**: Extend `src/services/ankiService.ts` class methods
 - **UI components**: Material-UI based, main logic in `AppModern.tsx`, organized in `src/components/` with index exports
 
 ### Configuration & Constants
-- **Shared utilities**: `src/shared/` (constants, types, utils, queryClient)
+- **Shared utilities**: `src/shared/` (constants, types, utils, queryClient, prompts)
 - **Custom hooks**: `src/hooks/` (includes useLocalStorage)
-- **Tests**: `src/__tests__/` (all test files)
+- **Tests**: `tests/` (all test files)
 
 ## External Dependencies & Gotchas
 

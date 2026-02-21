@@ -1,6 +1,6 @@
 import { setupServer } from 'msw/node'
 import { rest } from 'msw'
-import { ankiService } from '../services/anki' // import the functions from the correct path
+import { ankiService } from '../src/services/ankiService' // import from the correct src path
 import { afterAll, afterEach, beforeAll, expect, it } from "vitest"
 
 const server = setupServer(

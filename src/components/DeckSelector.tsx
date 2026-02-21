@@ -1,6 +1,6 @@
 import React from 'react';
 import { FormControl, InputLabel, Select, MenuItem } from '@mui/material';
-import { FormComponentProps } from '../../../shared';
+import { FormComponentProps } from '../shared';
 
 interface DeckSelectorProps extends FormComponentProps {
   value: string;

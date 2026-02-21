@@ -7,12 +7,12 @@ import { useState, useEffect } from 'react';
 import {
   GeneratorConfig,
   NotesList
-} from '../components/generator';
+} from '../components';
 
 // Import original functions
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { ankiService } from '../services/anki';
-import { openaiService } from '../services/openai';
+import { ankiService } from '../services/ankiService';
+import { openaiService } from '../services/openaiService';
 import { OpenAIKeyContext } from '../contexts/OpenAIKeyContext';
 import { useContext } from 'react';
 import { marked } from 'marked';

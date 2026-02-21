@@ -1,6 +1,6 @@
 import { Box, Typography, Divider, Alert, CircularProgress } from '@mui/material';
 import { Settings } from '@mui/icons-material';
-import { ApiKeyManager, DeckSelector, TagSelector, AdvancedPromptInput } from '../forms';
+import { ApiKeyManager, DeckSelector, TagSelector, AdvancedPromptInput } from '.';
 
 
 interface GeneratorConfigProps {
