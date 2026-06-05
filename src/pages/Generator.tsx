@@ -26,7 +26,6 @@ function App() {
   // Local state
   const [prompt, setPrompt] = useState(promptParam);
   const [deckName, setDeckName] = useLocalStorage<string>('deckName', DEFAULT_SETTINGS.deckName);
-  const [currentTags, setCurrentTags] = useLocalStorage<string[]>('tags', []);
   const [pendingNotes, setPendingNotes] = useState<Note[]>([]);
 
   // OpenAI Key context
@@ -62,7 +61,7 @@ function App() {
         deckName,
         modelName,
         prompt: promptText,
-        tags: currentTags,
+        tags: [],
       };
 
       const rawNotes = await openaiService.suggestAnkiNotes(openAIKey, options);
@@ -77,7 +76,6 @@ function App() {
           Back: rawNote.fields.Back || '',
           Question: rawNote.fields.Question || '',
           Ans: rawNote.fields.Ans || '',
-          Audio: rawNote.fields.Audio || '',
         },
         tags: rawNote.tags || [],
         created: false,
@@ -175,8 +173,6 @@ function App() {
             deckName={deckName}
             setDeckName={setDeckName}
             decks={decks}
-            currentTags={currentTags}
-            setCurrentTags={setCurrentTags}
             prompt={prompt}
             setPrompt={setPrompt}
             handleSuggestNotes={handleSuggestNotes}

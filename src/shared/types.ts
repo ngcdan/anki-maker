@@ -3,7 +3,6 @@ export interface NoteFields {
   Back: string;
   Question: string;
   Ans: string;
-  Audio?: string;
 }
 
 export interface Note {
@@ -36,7 +35,6 @@ export interface AnkiConnectResponse<T = any> {
 
 export interface ExtractedSections {
   front: string;
-  audio: string;
   ans: string;
   back: string;
 }

@@ -65,7 +65,6 @@ class OpenAIService {
             Question: `{{c1::${sections.ans}}}`,
             Ans: sections.ans,
             Back: sections.back,
-            Audio: sections.audio,
           },
           tags,
         },
