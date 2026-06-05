@@ -54,22 +54,36 @@ class AnkiService {
   }
 
   async addNote(note: Note): Promise<number> {
+    // Clone fields to avoid mutating the original
+    const cleanFields = { ...note.fields };
+
+    // Add picture attachments if present
+    // AnkiConnect auto-inserts <img> tags for picture params,
+    // so strip any existing <img> tags from fields that have images
+    const pictures = note.images?.map(img => {
+      for (const field of img.fields) {
+        if (cleanFields[field]) {
+          cleanFields[field] = cleanFields[field].replace(/<img\s+src="[^"]*"\s*\/?>/gi, '').trim();
+        }
+      }
+      return {
+        data: img.data,
+        filename: img.filename,
+        fields: img.fields,
+      };
+    });
+
     const params: any = {
       note: {
         modelName: note.modelName,
         deckName: note.deckName,
-        fields: note.fields,
+        fields: cleanFields,
         tags: note.tags,
       },
     };
 
-    // Add picture attachments if present
-    if (note.images && note.images.length > 0) {
-      params.note.picture = note.images.map(img => ({
-        data: img.data,
-        filename: img.filename,
-        fields: img.fields,
-      }));
+    if (pictures && pictures.length > 0) {
+      params.note.picture = pictures;
     }
 
     return this.ankiConnect({

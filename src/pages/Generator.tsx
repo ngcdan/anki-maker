@@ -107,20 +107,9 @@ function App() {
       ...prev,
       [fieldName]: { data: base64, filename, fields: [fieldName] },
     }));
-    setManualFields(prev => ({
-      ...prev,
-      [fieldName]: (prev[fieldName] || '') + `\n<img src="${filename}">`,
-    }));
   };
 
   const onManualImageRemove = (fieldName: string) => {
-    const img = manualImages[fieldName];
-    if (img) {
-      setManualFields(prev => ({
-        ...prev,
-        [fieldName]: prev[fieldName].replace(`\n<img src="${img.filename}">`, ''),
-      }));
-    }
     setManualImages(prev => {
       const next = { ...prev };
       delete next[fieldName];
@@ -146,9 +135,7 @@ function App() {
   };
 
   const handleCreateCard = (note: Note) => {
-    setPendingNotes(prev =>
-      prev.map(n => n.key === note.key ? { ...n, created: true } : n)
-    );
+    setPendingNotes(prev => prev.filter(n => n.key !== note.key));
   };
 
   const handleDeleteNote = (noteKey: string) => {
