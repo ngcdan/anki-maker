@@ -1,18 +1,19 @@
-export interface NoteFields {
-  Front: string;
-  Back: string;
-  Question: string;
-  Ans: string;
+export type AnkiNoteType = 'Basic' | 'Basic (and reversed card)' | 'Cloze';
+
+export interface ImageAttachment {
+  data: string; // base64
+  filename: string;
+  fields: string[]; // which fields reference this image
 }
 
 export interface Note {
-  id?: string;
   key: string;
   modelName: string;
   deckName: string;
-  fields: NoteFields;
+  fields: Record<string, string>;
   tags: string[];
   created?: boolean;
+  images?: ImageAttachment[];
 }
 
 export interface SuggestOptions {
@@ -20,6 +21,7 @@ export interface SuggestOptions {
   modelName: string;
   prompt: string;
   tags: string[];
+  noteType: AnkiNoteType;
 }
 
 export interface AnkiConnectRequest {
@@ -31,10 +33,4 @@ export interface AnkiConnectRequest {
 export interface AnkiConnectResponse<T = any> {
   result: T;
   error: string | null;
-}
-
-export interface ExtractedSections {
-  front: string;
-  ans: string;
-  back: string;
 }

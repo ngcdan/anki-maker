@@ -15,7 +15,7 @@ export const ANKI_CONNECT_VERSION = 6;
 
 export const DEFAULT_SETTINGS = {
   deckName: 'CS',
-  modelName: 'Basic_cloze',
+  modelName: 'Basic',
   tags: [] as string[],
 } as const;
 

@@ -1,26 +1,25 @@
 import { ENDPOINTS, ERROR_MESSAGES } from '../shared';
-import { SuggestOptions, Note, ExtractedSections } from '../shared';
-import { messages } from '../shared/vocab_prompt';
+import { SuggestOptions, Note } from '../shared';
+import { buildSystemPrompt, getFieldsForType } from '../shared/noteTypes';
 
 class OpenAIService {
-  async suggestAnkiNotes(
+  async generateNote(
     openAIKey: string,
-    { deckName, modelName, tags, prompt }: SuggestOptions
-  ): Promise<Note[]> {
+    { deckName, modelName, tags, prompt, noteType }: SuggestOptions
+  ): Promise<Note> {
     if (!openAIKey) {
       throw new Error(ERROR_MESSAGES.OPENAI_KEY_MISSING);
     }
 
     try {
+      const systemPrompt = buildSystemPrompt(noteType);
+
       const body = {
         model: 'gpt-4o-mini',
         response_format: { type: 'json_object' },
         messages: [
-          ...messages,
-          {
-            role: 'user',
-            content: prompt,
-          },
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: prompt },
         ],
       };
 
@@ -46,36 +45,33 @@ class OpenAIService {
         throw new Error(ERROR_MESSAGES.INVALID_RESPONSE);
       }
 
-      const noteContent = data.choices[0].message.content;
-
-      let sections: ExtractedSections;
+      const content = data.choices[0].message.content;
+      let parsed: Record<string, string>;
       try {
-        sections = JSON.parse(noteContent);
-      } catch (e) {
-        throw new Error("Failed to parse JSON from AI: " + noteContent);
+        parsed = JSON.parse(content);
+      } catch {
+        throw new Error("Failed to parse JSON from AI: " + content);
       }
 
-      return [
-        {
-          key: crypto.randomUUID(),
-          deckName,
-          modelName,
-          fields: {
-            Front: sections.front,
-            Question: `{{c1::${sections.ans}}}`,
-            Ans: sections.ans,
-            Back: sections.back,
-          },
-          tags,
-        },
-      ];
+      // Map lowercase keys from AI to PascalCase field names
+      const expectedFields = getFieldsForType(noteType);
+      const fields: Record<string, string> = {};
+      for (const field of expectedFields) {
+        fields[field] = parsed[field.toLowerCase()] || parsed[field] || '';
+      }
+
+      return {
+        key: crypto.randomUUID(),
+        deckName,
+        modelName,
+        fields,
+        tags,
+      };
     } catch (error) {
       if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
         throw new Error('Lỗi CORS hoặc Network. Hãy kiểm tra: 1. API Key đúng chuẩn. 2. Tắt Adblocker/Brave Shields. 3. Mạng internet bình thường.');
       }
-      if (error instanceof Error) {
-        throw error;
-      }
+      if (error instanceof Error) throw error;
       throw new Error(ERROR_MESSAGES.UNKNOWN);
     }
   }

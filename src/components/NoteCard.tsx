@@ -69,21 +69,15 @@ const NoteCardModern: React.FC<NoteCardProps> = memo(({
 
   const handleAddNote = async () => {
     try {
-      const updateFields = {
-        ...currentNote.fields,
-        Front: marked.parse(currentNote.fields.Front) as string,
-        Back: marked.parse(currentNote.fields.Back) as string,
-      };
-
+      const convertedFields: Record<string, string> = {};
+      for (const [key, val] of Object.entries(currentNote.fields)) {
+        convertedFields[key] = marked.parse(val || '') as string;
+      }
       addNote(
-        { ...currentNote, fields: updateFields },
+        { ...currentNote, fields: convertedFields },
         {
-          onSuccess: () => {
-            onCreate();
-          },
-          onError: (error) => {
-            console.error('Error adding note:', error);
-          },
+          onSuccess: () => onCreate(),
+          onError: (error) => console.error('Error adding note:', error),
         },
       );
     } catch (error) {
@@ -188,45 +182,26 @@ const NoteCardModern: React.FC<NoteCardProps> = memo(({
                 </Typography>
                 <Divider sx={{ mb: 2 }} />
 
-                {/* Front/Question Preview */}
-                <Box sx={{ mb: 2 }}>
-                  <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-                    Mặt trước:
-                  </Typography>
-                  <Box
-                    sx={{
-                      mt: 0.5,
-                      p: 1.5,
-                      borderRadius: 1,
-                      backgroundColor: 'grey.50',
-                      border: '1px solid',
-                      borderColor: 'grey.200',
-                    }}
-                    dangerouslySetInnerHTML={{
-                      __html: marked.parse(fields.Front || fields.Question || '')
-                    }}
-                  />
-                </Box>
-
-                {/* Back/Answer Preview */}
-                <Box>
-                  <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-                    Mặt sau:
-                  </Typography>
-                  <Box
-                    sx={{
-                      mt: 0.5,
-                      p: 1.5,
-                      borderRadius: 1,
-                      backgroundColor: 'grey.50',
-                      border: '1px solid',
-                      borderColor: 'grey.200',
-                    }}
-                    dangerouslySetInnerHTML={{
-                      __html: marked.parse(fields.Back || fields.Ans || '')
-                    }}
-                  />
-                </Box>
+                {Object.entries(fields).map(([fieldName, fieldValue], index) => (
+                  <Box key={fieldName} sx={{ mb: index < Object.entries(fields).length - 1 ? 2 : 0 }}>
+                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                      {fieldName}:
+                    </Typography>
+                    <Box
+                      sx={{
+                        mt: 0.5,
+                        p: 1.5,
+                        borderRadius: 1,
+                        backgroundColor: 'grey.50',
+                        border: '1px solid',
+                        borderColor: 'grey.200',
+                      }}
+                      dangerouslySetInnerHTML={{
+                        __html: marked.parse(fieldValue || '') as string
+                      }}
+                    />
+                  </Box>
+                ))}
               </Paper>
             </Box>
           )}
@@ -234,72 +209,21 @@ const NoteCardModern: React.FC<NoteCardProps> = memo(({
           {/* Edit Mode - Only show when preview is hidden */}
           {!showPreview && (
             <Grid container spacing={2}>
-              <Grid item xs={6}>
-                <TextField label="Deck" value={deckName} disabled size="small" fullWidth />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField label="Note type" value={modelName} disabled size="small" fullWidth />
-              </Grid>
-
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Front"
-                  defaultValue={fields.Front}
-                  multiline
-                  rows={expanded ? 3 : 2}
-                  name="Front"
-                  onChange={handleFieldChange}
-                  disabled={isLoading}
-                  size="small"
-                />
-              </Grid>
-
-              {fields.Question && (
-                <Grid item xs={12}>
+              {Object.entries(fields).map(([fieldName, fieldValue]) => (
+                <Grid item xs={12} key={fieldName}>
                   <TextField
                     fullWidth
-                    label="Question"
-                    defaultValue={fields.Question}
+                    label={fieldName}
+                    defaultValue={fieldValue}
                     multiline
                     rows={expanded ? 3 : 2}
-                    name="Question"
+                    name={fieldName}
                     onChange={handleFieldChange}
                     disabled={isLoading}
                     size="small"
                   />
                 </Grid>
-              )}
-
-              {fields.Ans && (
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Answer"
-                    defaultValue={fields.Ans}
-                    multiline
-                    rows={expanded ? 3 : 2}
-                    name="Ans"
-                    onChange={handleFieldChange}
-                    disabled={isLoading}
-                    size="small"
-                  />
-                </Grid>
-              )}
-
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Back"
-                  defaultValue={fields.Back}
-                  multiline
-                  rows={expanded ? 3 : 2}
-                  name="Back"
-                  onChange={handleFieldChange}
-                  disabled={isLoading}
-                  size="small"
-                />
-              </Grid>
+              ))}
             </Grid>
           )}
         </CardContent>

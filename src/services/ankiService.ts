@@ -54,9 +54,27 @@ class AnkiService {
   }
 
   async addNote(note: Note): Promise<number> {
+    const params: any = {
+      note: {
+        modelName: note.modelName,
+        deckName: note.deckName,
+        fields: note.fields,
+        tags: note.tags,
+      },
+    };
+
+    // Add picture attachments if present
+    if (note.images && note.images.length > 0) {
+      params.note.picture = note.images.map(img => ({
+        data: img.data,
+        filename: img.filename,
+        fields: img.fields,
+      }));
+    }
+
     return this.ankiConnect({
       action: 'addNote',
-      params: { note },
+      params,
     });
   }
 

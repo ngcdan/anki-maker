@@ -1,38 +1,34 @@
 import { Box, Container, Grid, Typography, LinearProgress } from '@mui/material';
-
-import { useState, useEffect } from 'react';
-
-import {
-  GeneratorConfig,
-  NotesList
-} from '../components';
-
-// Import original functions
+import { useState, useEffect, useContext } from 'react';
+import { GeneratorConfig, NotesList } from '../components';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { ankiService } from '../services/ankiService';
 import { openaiService } from '../services/openaiService';
 import { OpenAIKeyContext } from '../contexts/OpenAIKeyContext';
-import { useContext } from 'react';
 import { DEFAULT_SETTINGS } from '../shared';
 import { useLocalStorage } from '../hooks';
-import { Note } from '../shared';
-
-
+import { Note, AnkiNoteType, ImageAttachment } from '../shared';
+import { getFieldsForType } from '../shared/noteTypes';
 
 function App() {
   const query = new URLSearchParams(window.location.search);
   const promptParam = query.get('prompt') || '';
 
-  // Local state
+  // State
   const [prompt, setPrompt] = useState(promptParam);
   const [deckName, setDeckName] = useLocalStorage<string>('deckName', DEFAULT_SETTINGS.deckName);
+  const [noteType, setNoteType] = useLocalStorage<AnkiNoteType>('noteType', 'Basic');
+  const [mode, setMode] = useState<'ai' | 'manual'>('ai');
   const [pendingNotes, setPendingNotes] = useState<Note[]>([]);
+
+  // Manual mode state
+  const [manualFields, setManualFields] = useState<Record<string, string>>({});
+  const [manualImages, setManualImages] = useState<Record<string, ImageAttachment>>({});
 
   // OpenAI Key context
   const { openAIKey } = useContext(OpenAIKeyContext);
   const hasValidKey = openAIKey && openAIKey.startsWith('sk-') && openAIKey.length > 20;
 
-  // Simple feedback fallback
   const feedback = {
     success: (_msg: string) => {},
     error: (msg: string) => alert(msg),
@@ -47,54 +43,36 @@ function App() {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Anki connection status
   const isConnected = !decksError;
   const ankiLoading = decksLoading;
   const ankiError = decksError;
 
-  const modelName = DEFAULT_SETTINGS.modelName;
+  // Reset manual fields when noteType changes
+  useEffect(() => {
+    const fields = getFieldsForType(noteType);
+    setManualFields(fields.reduce((acc, f) => ({ ...acc, [f]: '' }), {} as Record<string, string>));
+    setManualImages({});
+  }, [noteType]);
 
   // AI Generation mutation
   const generateNotesMutation = useMutation({
     mutationFn: async (promptText: string) => {
-      const options = {
+      const note = await openaiService.generateNote(openAIKey, {
         deckName,
-        modelName,
+        modelName: noteType,
         prompt: promptText,
         tags: [],
-      };
-
-      const rawNotes = await openaiService.suggestAnkiNotes(openAIKey, options);
-
-      // Convert raw notes to proper Note format
-      const convertedNotes: Note[] = rawNotes.map((rawNote: any) => ({
-        key: rawNote.key,
-        modelName: rawNote.modelName,
-        deckName: rawNote.deckName,
-        fields: {
-          Front: rawNote.fields.Front || '',
-          Back: rawNote.fields.Back || '',
-          Question: rawNote.fields.Question || '',
-          Ans: rawNote.fields.Ans || '',
-        },
-        tags: rawNote.tags || [],
-        created: false,
-      }));
-
-      return convertedNotes;
+        noteType,
+      });
+      return { ...note, created: false };
     },
-    onSuccess: (notes) => {
-      // Thêm vào pendingNotes thay vì thay thế
-      setPendingNotes(prev => [...prev, ...notes]);
-      feedback.success(`Đã tạo ${notes.length} thẻ học mới! Tổng cộng: ${pendingNotes.length + notes.length} thẻ`);
+    onSuccess: (note) => {
+      setPendingNotes(prev => [...prev, note]);
     },
     onError: (error) => {
       feedback.error('Có lỗi khi tạo thẻ học: ' + String(error));
     },
   });
-
-
-
 
   // Auto-suggest on initial prompt
   useEffect(() => {
@@ -103,25 +81,68 @@ function App() {
     }
   }, [promptParam, hasValidKey, isConnected]);
 
-  // Handle suggesting notes
   const handleSuggestNotes = () => {
     if (!prompt.trim()) {
       feedback.warning('Vui lòng nhập nội dung để tạo thẻ');
       return;
     }
-
     if (!hasValidKey) {
-      feedback.error('Vui lòng cấu hình OpenAI API key trong Settings');
+      feedback.error('Vui lòng cấu hình OpenAI API key');
       return;
     }
-
     if (!isConnected) {
       feedback.error('Không thể kết nối đến Anki. Vui lòng kiểm tra AnkiConnect');
       return;
     }
-
-    feedback.info('Đang tạo thẻ học từ nội dung của bạn...');
     generateNotesMutation.mutate(prompt.trim());
+  };
+
+  // Manual mode handlers
+  const onManualFieldChange = (name: string, value: string) => {
+    setManualFields(prev => ({ ...prev, [name]: value }));
+  };
+
+  const onManualImageAdd = (fieldName: string, base64: string, filename: string) => {
+    setManualImages(prev => ({
+      ...prev,
+      [fieldName]: { data: base64, filename, fields: [fieldName] },
+    }));
+    setManualFields(prev => ({
+      ...prev,
+      [fieldName]: (prev[fieldName] || '') + `\n<img src="${filename}">`,
+    }));
+  };
+
+  const onManualImageRemove = (fieldName: string) => {
+    const img = manualImages[fieldName];
+    if (img) {
+      setManualFields(prev => ({
+        ...prev,
+        [fieldName]: prev[fieldName].replace(`\n<img src="${img.filename}">`, ''),
+      }));
+    }
+    setManualImages(prev => {
+      const next = { ...prev };
+      delete next[fieldName];
+      return next;
+    });
+  };
+
+  const handleManualSubmit = () => {
+    const images = Object.values(manualImages);
+    const note: Note = {
+      key: crypto.randomUUID(),
+      modelName: noteType,
+      deckName,
+      fields: { ...manualFields },
+      tags: [],
+      images: images.length > 0 ? images : undefined,
+    };
+    setPendingNotes(prev => [...prev, note]);
+    // Reset form
+    const fields = getFieldsForType(noteType);
+    setManualFields(fields.reduce((acc, f) => ({ ...acc, [f]: '' }), {} as Record<string, string>));
+    setManualImages({});
   };
 
   const handleCreateCard = (note: Note) => {
@@ -132,40 +153,26 @@ function App() {
 
   const handleDeleteNote = (noteKey: string) => {
     setPendingNotes(prev => prev.filter(n => n.key !== noteKey));
-    feedback.info('Đã xóa thẻ khỏi danh sách');
   };
 
   const handleClearAll = () => {
     setPendingNotes([]);
-    feedback.info('Đã xóa tất cả thẻ');
   };
 
   const showProgress = generateNotesMutation.isLoading;
 
   return (
     <Container maxWidth={false} sx={{ p: 1, px: 2, height: '100%', display: 'flex', flexDirection: 'column' }}>
-      {/* Progress Bar (if generating) */}
       {showProgress && (
         <Box sx={{ mb: 2 }}>
-          <LinearProgress
-            sx={{
-              borderRadius: 1,
-              height: 4,
-              backgroundColor: 'grey.200',
-            }}
-          />
+          <LinearProgress sx={{ borderRadius: 1, height: 4, backgroundColor: 'grey.200' }} />
           <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
             Đang tạo ghi chú với AI...
           </Typography>
         </Box>
       )}
 
-      {/* Stats Cards */}
-
-
-      {/* Main Content */}
       <Grid container spacing={4}>
-        {/* Left Panel - Form */}
         <Grid item xs={12} lg={4}>
           <GeneratorConfig
             ankiLoading={ankiLoading}
@@ -173,14 +180,23 @@ function App() {
             deckName={deckName}
             setDeckName={setDeckName}
             decks={decks}
+            noteType={noteType}
+            setNoteType={setNoteType}
+            mode={mode}
+            setMode={setMode}
             prompt={prompt}
             setPrompt={setPrompt}
             handleSuggestNotes={handleSuggestNotes}
             isLoading={generateNotesMutation.isLoading}
+            manualFields={manualFields}
+            manualImages={manualImages}
+            onManualFieldChange={onManualFieldChange}
+            onManualImageAdd={onManualImageAdd}
+            onManualImageRemove={onManualImageRemove}
+            onManualSubmit={handleManualSubmit}
           />
         </Grid>
 
-        {/* Right Panel - Notes */}
         <Grid item xs={12} lg={8}>
           <NotesList
             pendingNotes={pendingNotes}
@@ -191,7 +207,6 @@ function App() {
           />
         </Grid>
       </Grid>
-
     </Container>
   );
 }
