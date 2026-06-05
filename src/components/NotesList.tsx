@@ -9,9 +9,7 @@ interface NotesListProps {
   isLoading: boolean;
   handleClearAll: () => void;
   handleCreateCard: (note: Note) => void;
-  handleTrashNote: (noteKey: string) => void;
-  handleRestoreNote: (noteKey: string) => void;
-  handleDeletePermanent: (noteKey: string) => void;
+  handleDeleteNote: (noteKey: string) => void;
 }
 
 export function NotesList({
@@ -19,9 +17,7 @@ export function NotesList({
   isLoading,
   handleClearAll,
   handleCreateCard,
-  handleTrashNote,
-  handleRestoreNote,
-  handleDeletePermanent
+  handleDeleteNote
 }: NotesListProps) {
   return (
     <Box>
@@ -79,9 +75,7 @@ export function NotesList({
               key={note.key}
               note={note}
               onCreate={() => handleCreateCard(note)}
-              onTrash={() => handleTrashNote(note.key)}
-              onRestore={() => handleRestoreNote(note.key)}
-              onDeletePermanent={() => handleDeletePermanent(note.key)}
+              onDelete={() => handleDeleteNote(note.key)}
             />
           ))}
         </Grid>

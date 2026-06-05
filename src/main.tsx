@@ -1,9 +1,8 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { QueryClientProvider } from '@tanstack/react-query'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Container, Box, Typography } from '@mui/material';
 import OpenAIKeyContextProvider from './contexts/OpenAIKeyContext';
-import { createQueryClient } from './shared';
 import AppModern from './pages/Generator';
 
 // Inline ErrorBoundary — replaces deleted components/layout module
@@ -43,8 +42,14 @@ function Root() {
   );
 }
 
-// Create optimized query client
-const queryClient = createQueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('Failed to find the root element');

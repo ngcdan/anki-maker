@@ -13,8 +13,6 @@ import { ankiService } from '../services/ankiService';
 import { openaiService } from '../services/openaiService';
 import { OpenAIKeyContext } from '../contexts/OpenAIKeyContext';
 import { useContext } from 'react';
-import { marked } from 'marked';
-
 import { DEFAULT_SETTINGS } from '../shared';
 import { useLocalStorage } from '../hooks';
 import { Note } from '../shared';
@@ -37,10 +35,10 @@ function App() {
 
   // Simple feedback fallback
   const feedback = {
-    success: (msg: string) => console.log(msg),
+    success: (_msg: string) => {},
     error: (msg: string) => alert(msg),
     warning: (msg: string) => alert(msg),
-    info: (msg: string) => console.log(msg),
+    info: (_msg: string) => {},
   };
 
   // Fetch Anki data
@@ -82,7 +80,6 @@ function App() {
           Audio: rawNote.fields.Audio || '',
         },
         tags: rawNote.tags || [],
-        trashed: false,
         created: false,
       }));
 
@@ -129,56 +126,13 @@ function App() {
     generateNotesMutation.mutate(prompt.trim());
   };
 
-  const handleCreateCard = async (note: Note) => {
-    console.log('call handle create card');
-    console.log(note);
-
-    try {
-      // Convert markdown to HTML for Front/Back before adding
-      const convertedFields = {
-        ...note.fields,
-        Front: note.fields.Front ? marked.parse(note.fields.Front) : note.fields.Front,
-        Back: note.fields.Back ? marked.parse(note.fields.Back) : note.fields.Back,
-      };
-
-      // Convert Note to addNote format
-      const ankiNote = {
-        modelName: note.modelName,
-        deckName: note.deckName,
-        fields: convertedFields,
-        tags: note.tags,
-      };
-
-      // Simulate successful creation without calling Anki
-      console.log('Would create Anki note:', ankiNote);
-
-      // Update note status
-      setPendingNotes(prev =>
-        prev.map(n => n.key === note.key ? { ...n, created: true } : n)
-      );
-
-      // Show success message
-      feedback.success('Thẻ đã được đánh dấu là đã tạo (không gọi Anki)');
-    } catch (error) {
-      console.error('Error creating card:', error);
-    }
-  };
-
-  const handleTrashNote = (noteKey: string) => {
+  const handleCreateCard = (note: Note) => {
     setPendingNotes(prev =>
-      prev.map(n => n.key === noteKey ? { ...n, trashed: true } : n)
+      prev.map(n => n.key === note.key ? { ...n, created: true } : n)
     );
-    feedback.info('Đã xóa thẻ');
   };
 
-  const handleRestoreNote = (noteKey: string) => {
-    setPendingNotes(prev =>
-      prev.map(n => n.key === noteKey ? { ...n, trashed: false } : n)
-    );
-    feedback.success('Đã khôi phục thẻ');
-  };
-
-  const handleDeletePermanent = (noteKey: string) => {
+  const handleDeleteNote = (noteKey: string) => {
     setPendingNotes(prev => prev.filter(n => n.key !== noteKey));
     feedback.info('Đã xóa thẻ khỏi danh sách');
   };
@@ -237,9 +191,7 @@ function App() {
             isLoading={generateNotesMutation.isLoading}
             handleClearAll={handleClearAll}
             handleCreateCard={handleCreateCard}
-            handleTrashNote={handleTrashNote}
-            handleRestoreNote={handleRestoreNote}
-            handleDeletePermanent={handleDeletePermanent}
+            handleDeleteNote={handleDeleteNote}
           />
         </Grid>
       </Grid>

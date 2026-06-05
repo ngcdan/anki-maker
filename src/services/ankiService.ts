@@ -60,43 +60,6 @@ class AnkiService {
     });
   }
 
-  async fetchRecentNotes(modelName: string, tags: string[]): Promise<any[]> {
-    const searchString = `added:90 ${tags.map(tag => `"tag:${tag}"`).join(' ')} "note:${modelName}"`;
-
-    let noteIds = await this.ankiConnect<number[]>({
-      action: 'findNotes',
-      params: { query: searchString },
-    });
-
-    if (noteIds.length === 0) {
-      noteIds = await this.ankiConnect<number[]>({
-        action: 'findNotes',
-        params: { query: `added:365 "note:${modelName}"` },
-      });
-    }
-
-    if (noteIds.length === 0) {
-      return [];
-    }
-
-    return this.ankiConnect({
-      action: 'notesInfo',
-      params: { notes: noteIds },
-    });
-  }
-
-  async fetchMediaDirPath(): Promise<string> {
-    return this.ankiConnect({ action: 'getMediaDirPath' });
-  }
-
-  async testConnection(): Promise<boolean> {
-    try {
-      await this.fetchDecks();
-      return true;
-    } catch {
-      return false;
-    }
-  }
 }
 
 export const ankiService = new AnkiService();

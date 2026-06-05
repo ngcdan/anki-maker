@@ -1,54 +1,42 @@
-import React, { useState, useContext, memo, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, memo, useMemo, useEffect } from 'react';
 import {
   Card, CardContent, CardActions, Grid, TextField, Button, CircularProgress, Typography, Box, Chip, IconButton,
   Divider, Fade, Tooltip, Paper, useTheme, alpha
 } from '@mui/material';
 import {
-  CheckCircle, Cancel, VolumeUp, Delete, ExpandMore, ContentCopy, Psychology, Add, Visibility, VisibilityOff, Restore,
-  DeleteForever
+  CheckCircle, Delete, ExpandMore, Psychology, Add, Visibility, VisibilityOff
 } from '@mui/icons-material';
 import { marked } from 'marked';
 
 import { Note } from '../shared';
-import { useAddNote, useTTS } from '../hooks';
-import { OpenAIKeyContext } from '../contexts/OpenAIKeyContext';
+import { useAddNote } from '../hooks';
 
-interface NoteCardModernProps {
+interface NoteCardProps {
   note: Note;
-  onTrash: () => void;
+  onDelete: () => void;
   onCreate: () => void;
-  onRestore?: () => void;
-  onDeletePermanent?: () => void;
 }
 
-const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
+const NoteCardModern: React.FC<NoteCardProps> = memo(({
   note,
-  onTrash,
+  onDelete,
   onCreate,
-  onRestore,
-  onDeletePermanent
 }) => {
   const theme = useTheme();
 
   const [currentNote, setCurrentNote] = useState(note);
   const [expanded, setExpanded] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
-  const [copied, setCopied] = useState<string | null>(null);
 
-  // Original NoteCard hooks
   const { mutate: addNote, isLoading } = useAddNote();
-  // Không cần fetch allTags nữa vì không hiển thị gợi ý
-  const { openAIKey } = useContext(OpenAIKeyContext);
-  const { generateAudio, createAnkiAudioFile, isGenerating } = useTTS();
 
-  const { modelName, deckName, fields, trashed, created } = currentNote;
+  const { modelName, deckName, fields, created } = currentNote;
 
   // Sync currentNote with note prop changes
   useEffect(() => {
     setCurrentNote(note);
   }, [note]);
 
-  // Memoize computed values
   const cardStatus = useMemo(() => {
     if (created) return {
       color: 'success',
@@ -57,13 +45,6 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
       bgColor: alpha(theme.palette.success.main, 0.1),
       borderColor: theme.palette.success.main,
     };
-    if (trashed) return {
-      color: 'error',
-      icon: <Cancel />,
-      text: 'Đã xóa',
-      bgColor: alpha(theme.palette.error.main, 0.1),
-      borderColor: theme.palette.error.main,
-    };
     return {
       color: 'primary',
       icon: <Psychology />,
@@ -71,18 +52,12 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
       bgColor: alpha(theme.palette.primary.main, 0.1),
       borderColor: theme.palette.primary.main,
     };
-  }, [created, trashed, theme]);
+  }, [created, theme]);
 
   const isDisabled = useMemo(() => {
-    return created || trashed || isLoading;
-  }, [created, trashed, isLoading]);
+    return created || isLoading;
+  }, [created, isLoading]);
 
-  // Chỉ disable khi đang loading, cho phép edit trong mọi trạng thái khác
-  const isFieldDisabled = useMemo(() => {
-    return isLoading || isGenerating;
-  }, [isLoading, isGenerating]);
-
-  // Original NoteCard handlers
   const handleFieldChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.name) {
       setCurrentNote(prev => ({
@@ -94,79 +69,27 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
 
   const handleAddNote = async () => {
     try {
-      const audioTexts = currentNote.fields.Audio || '';
-      const fields = currentNote.fields;
-
-      // Convert markdown to HTML
       const updateFields = {
-        ...fields,
-        Front: marked.parse(fields.Front),
-        Back: marked.parse(fields.Back),
+        ...currentNote.fields,
+        Front: marked.parse(currentNote.fields.Front) as string,
+        Back: marked.parse(currentNote.fields.Back) as string,
       };
 
-      const migrateNote: any = { ...currentNote, fields: updateFields };
-
-      // Handle TTS audio generation with OpenAI
-      if (audioTexts && openAIKey) {
-        const audioResponse = await generateAudio(audioTexts, openAIKey, {
-          voice: 'alloy',
-          speed: 1.0,
-          model: 'tts-1',
-        });
-
-        if (audioResponse) {
-          const audioFile = createAnkiAudioFile(
-            audioResponse.audioBuffer,
-            audioResponse.fileName
-          );
-          migrateNote.audio = [audioFile];
-        }
-      }
-
-      addNote(migrateNote, {
-        onSuccess: () => {
-          onCreate();
+      addNote(
+        { ...currentNote, fields: updateFields },
+        {
+          onSuccess: () => {
+            onCreate();
+          },
+          onError: (error) => {
+            console.error('Error adding note:', error);
+          },
         },
-        onError: (error) => {
-          console.error('Error adding note:', error);
-        },
-      });
+      );
     } catch (error) {
       console.error('Error adding note:', error);
     }
   };
-
-  // Enhanced handlers
-  const handleCopy = useCallback(async (text: string, type: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(type);
-      setTimeout(() => setCopied(null), 2000);
-    } catch (error) {
-      console.error('Failed to copy:', error);
-    }
-  }, []);
-
-  const handlePlayAudio = useCallback(async (text: string) => {
-    if (!openAIKey) return;
-
-    try {
-      const audioResponse = await generateAudio(text, openAIKey, {
-        voice: 'alloy',
-        speed: 1.0,
-        model: 'tts-1',
-      });
-
-      if (audioResponse?.audioBuffer) {
-        const audioBlob = new Blob([audioResponse.audioBuffer], { type: 'audio/mpeg' });
-        const audioUrl = URL.createObjectURL(audioBlob);
-        const audio = new Audio(audioUrl);
-        audio.play();
-      }
-    } catch (error) {
-      console.error('Error playing audio:', error);
-    }
-  }, [openAIKey, generateAudio]);
 
   return (
     <Fade in timeout={300}>
@@ -182,13 +105,9 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
           backgroundColor: 'background.paper',
           boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
           transition: 'all 0.3s ease',
-          opacity: trashed ? 0.6 : 1,
-          filter: trashed ? 'grayscale(50%)' : 'none',
           '&:hover': {
-            transform: trashed ? 'none' : 'translateY(-2px)',
-            boxShadow: trashed
-              ? '0 4px 20px rgba(0, 0, 0, 0.08)'
-              : '0 8px 30px rgba(0, 0, 0, 0.12)',
+            transform: 'translateY(-2px)',
+            boxShadow: '0 8px 30px rgba(0, 0, 0, 0.12)',
           },
         }}
       >
@@ -322,7 +241,6 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
                 <TextField label="Note type" value={modelName} disabled size="small" fullWidth />
               </Grid>
 
-              {/* Compact view by default, expanded when clicked */}
               <Grid item xs={12}>
                 <TextField
                   fullWidth
@@ -332,35 +250,8 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
                   rows={expanded ? 3 : 2}
                   name="Front"
                   onChange={handleFieldChange}
-                  disabled={isFieldDisabled}
+                  disabled={isLoading}
                   size="small"
-                  InputProps={{
-                    endAdornment: (
-                      <Box sx={{ display: 'flex', gap: 0.5 }}>
-                        <Tooltip title="Copy">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleCopy(fields.Front, 'Front')}
-                            sx={{ color: copied === 'Front' ? 'success.main' : 'text.secondary' }}
-                          >
-                            <ContentCopy fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        {fields.Front && (
-                          <Tooltip title="Play audio">
-                            <IconButton
-                              size="small"
-                              onClick={() => handlePlayAudio(fields.Front)}
-                              disabled={isGenerating}
-                              sx={{ color: 'text.secondary' }}
-                            >
-                              {isGenerating ? <CircularProgress size={16} /> : <VolumeUp fontSize="small" />}
-                            </IconButton>
-                          </Tooltip>
-                        )}
-                      </Box>
-                    ),
-                  }}
                 />
               </Grid>
 
@@ -374,33 +265,8 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
                     rows={expanded ? 3 : 2}
                     name="Question"
                     onChange={handleFieldChange}
-                    disabled={isFieldDisabled}
+                    disabled={isLoading}
                     size="small"
-                    InputProps={{
-                      endAdornment: (
-                        <Box sx={{ display: 'flex', gap: 0.5 }}>
-                          <Tooltip title="Copy">
-                            <IconButton
-                              size="small"
-                              onClick={() => handleCopy(fields.Question, 'Question')}
-                              sx={{ color: copied === 'Question' ? 'success.main' : 'text.secondary' }}
-                            >
-                              <ContentCopy fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Play audio">
-                            <IconButton
-                              size="small"
-                              onClick={() => fields.Audio && handlePlayAudio(fields.Audio)}
-                              disabled={isGenerating}
-                              sx={{ color: 'text.secondary' }}
-                            >
-                              {isGenerating ? <CircularProgress size={16} /> : <VolumeUp fontSize="small" />}
-                            </IconButton>
-                          </Tooltip>
-                        </Box>
-                      ),
-                    }}
                   />
                 </Grid>
               )}
@@ -415,33 +281,8 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
                     rows={expanded ? 3 : 2}
                     name="Ans"
                     onChange={handleFieldChange}
-                    disabled={isFieldDisabled}
+                    disabled={isLoading}
                     size="small"
-                    InputProps={{
-                      endAdornment: (
-                        <Box sx={{ display: 'flex', gap: 0.5 }}>
-                          <Tooltip title="Copy">
-                            <IconButton
-                              size="small"
-                              onClick={() => handleCopy(fields.Ans, 'Ans')}
-                              sx={{ color: copied === 'Ans' ? 'success.main' : 'text.secondary' }}
-                            >
-                              <ContentCopy fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Play audio">
-                            <IconButton
-                              size="small"
-                              onClick={() => fields.Audio && handlePlayAudio(fields.Audio)}
-                              disabled={isGenerating}
-                              sx={{ color: 'text.secondary' }}
-                            >
-                              {isGenerating ? <CircularProgress size={16} /> : <VolumeUp fontSize="small" />}
-                            </IconButton>
-                          </Tooltip>
-                        </Box>
-                      ),
-                    }}
                   />
                 </Grid>
               )}
@@ -455,109 +296,21 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
                   rows={expanded ? 3 : 2}
                   name="Back"
                   onChange={handleFieldChange}
-                  disabled={isFieldDisabled}
+                  disabled={isLoading}
                   size="small"
-                  InputProps={{
-                    endAdornment: (
-                      <Box sx={{ display: 'flex', gap: 0.5 }}>
-                        <Tooltip title="Copy">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleCopy(fields.Back, 'Back')}
-                            sx={{ color: copied === 'Back' ? 'success.main' : 'text.secondary' }}
-                          >
-                            <ContentCopy fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        {fields.Back && (
-                          <Tooltip title="Play audio">
-                            <IconButton
-                              size="small"
-                              onClick={() => handlePlayAudio(fields.Back)}
-                              disabled={isGenerating}
-                              sx={{ color: 'text.secondary' }}
-                            >
-                              {isGenerating ? <CircularProgress size={16} /> : <VolumeUp fontSize="small" />}
-                            </IconButton>
-                          </Tooltip>
-                        )}
-                      </Box>
-                    ),
-                  }}
                 />
               </Grid>
-
-              {fields.Audio && (
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Audio"
-                    defaultValue={fields.Audio}
-                    multiline
-                    rows={expanded ? 2 : 1}
-                    name="Audio"
-                    onChange={handleFieldChange}
-                    disabled={isFieldDisabled}
-                    size="small"
-                    InputProps={{
-                      endAdornment: (
-                        <Tooltip title="Play audio">
-                          <IconButton
-                            size="small"
-                            onClick={() => handlePlayAudio(fields.Audio)}
-                            disabled={isGenerating}
-                            sx={{ color: 'text.secondary' }}
-                          >
-                            {isGenerating ? <CircularProgress size={16} /> : <VolumeUp fontSize="small" />}
-                          </IconButton>
-                        </Tooltip>
-                      ),
-                    }}
-                  />
-                </Grid>
-              )}
             </Grid>
           )}
         </CardContent>
 
         <CardActions sx={{ justifyContent: 'space-between', px: 2, pb: 2 }}>
-          {trashed ? (
-            // Thẻ đã trash: hiển thị khôi phục và xóa vĩnh viễn
-            <>
-              <Button
-                size="small"
-                color="primary"
-                onClick={onRestore}
-                startIcon={<Restore />}
-                sx={{
-                  borderRadius: 2,
-                  textTransform: 'none',
-                  fontWeight: 500,
-                }}
-              >
-                Khôi phục
-              </Button>
-              <Button
-                size="small"
-                color="error"
-                onClick={onDeletePermanent}
-                startIcon={<DeleteForever />}
-                sx={{
-                  borderRadius: 2,
-                  textTransform: 'none',
-                  fontWeight: 500,
-                }}
-              >
-                Xóa vĩnh viễn
-              </Button>
-            </>
-          ) : created ? (
-            // Thẻ đã tạo: chỉ hiển thị xóa vĩnh viễn
+          {created ? (
             <Button
               size="small"
               color="error"
-              onClick={onDeletePermanent}
-              startIcon={<DeleteForever />}
+              onClick={onDelete}
+              startIcon={<Delete />}
               sx={{
                 borderRadius: 2,
                 textTransform: 'none',
@@ -568,12 +321,11 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
               Xóa khỏi danh sách
             </Button>
           ) : (
-            // Thẻ mới: hiển thị trash và tạo thẻ
             <>
               <Button
                 size="small"
                 color="error"
-                onClick={onTrash}
+                onClick={onDelete}
                 disabled={isDisabled}
                 startIcon={<Delete />}
                 sx={{
@@ -592,7 +344,7 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
                 onClick={handleAddNote}
                 disabled={isDisabled}
                 startIcon={
-                  (isLoading || isGenerating) ? (
+                  isLoading ? (
                     <CircularProgress size={16} color="inherit" />
                   ) : (
                     <Add />
@@ -609,7 +361,7 @@ const NoteCardModern: React.FC<NoteCardModernProps> = memo(({
                   },
                 }}
               >
-                {isGenerating ? 'Tạo audio...' : isLoading ? 'Đang thêm...' : 'Tạo thẻ'}
+                {isLoading ? 'Đang thêm...' : 'Tạo thẻ'}
               </Button>
             </>
           )}

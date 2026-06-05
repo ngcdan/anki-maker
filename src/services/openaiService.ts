@@ -28,7 +28,7 @@ class OpenAIService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${openAIKey}`,
+          Authorization: `Bearer ${openAIKey.trim()}`,
         },
         body: JSON.stringify(body),
       });
@@ -55,10 +55,6 @@ class OpenAIService {
         throw new Error("Failed to parse JSON from AI: " + noteContent);
       }
 
-      if (!sections.audio || sections.audio.length === 0) {
-        throw new Error(ERROR_MESSAGES.AUDIO_GENERATION);
-      }
-
       return [
         {
           key: crypto.randomUUID(),
@@ -75,6 +71,9 @@ class OpenAIService {
         },
       ];
     } catch (error) {
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        throw new Error('Lỗi CORS hoặc Network. Hãy kiểm tra: 1. API Key đúng chuẩn. 2. Tắt Adblocker/Brave Shields. 3. Mạng internet bình thường.');
+      }
       if (error instanceof Error) {
         throw error;
       }
