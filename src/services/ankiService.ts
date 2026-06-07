@@ -73,6 +73,13 @@ class AnkiService {
           }
         }
 
+        // Ensure fields with media aren't empty (AnkiConnect rejects empty notes)
+        for (const field of item.fields) {
+          if (!cleanFields[field]) {
+            cleanFields[field] = ' ';
+          }
+        }
+
         const entry = { data: item.data, filename: item.filename, fields: item.fields };
         if (item.type === 'video') {
           videos.push(entry);
