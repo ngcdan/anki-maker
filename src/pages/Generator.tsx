@@ -18,7 +18,7 @@ function App() {
   const [prompt, setPrompt] = useState(promptParam);
   const [deckName, setDeckName] = useLocalStorage<string>('deckName', DEFAULT_SETTINGS.deckName);
   const [noteType, setNoteType] = useLocalStorage<AnkiNoteType>('noteType', 'Basic');
-  const [mode, setMode] = useState<'ai' | 'manual'>('ai');
+  const [mode, setMode] = useState<'ai' | 'manual'>('manual');
   const [pendingNotes, setPendingNotes] = useState<Note[]>([]);
 
   // Manual mode state
