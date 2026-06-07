@@ -34,6 +34,22 @@ function getMediaType(file: File): MediaType | null {
   return null;
 }
 
+function extractYouTubeId(text: string): string | null {
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
+    /youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/,
+  ];
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match) return match[1];
+  }
+  return null;
+}
+
+function toYouTubeIframe(videoId: string): string {
+  return `<iframe width="560" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
+}
+
 export function MediaField({
   label,
   name,
@@ -61,12 +77,26 @@ export function MediaField({
   const handlePaste = async (e: React.ClipboardEvent) => {
     const items = e.clipboardData?.items;
     if (!items) return;
+
+    // Check for media files first
     for (const item of Array.from(items)) {
       if (item.type.startsWith('image/') || item.type.startsWith('video/')) {
         e.preventDefault();
         const file = item.getAsFile();
         if (file) await handleFile(file);
         return;
+      }
+    }
+
+    // Check for YouTube URL in pasted text
+    const text = e.clipboardData?.getData('text/plain')?.trim();
+    if (text) {
+      const videoId = extractYouTubeId(text);
+      if (videoId) {
+        e.preventDefault();
+        const iframe = toYouTubeIframe(videoId);
+        const newValue = value ? `${value}\n${iframe}` : iframe;
+        onChange(name, newValue);
       }
     }
   };
