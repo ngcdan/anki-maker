@@ -46,8 +46,23 @@ function extractYouTubeId(text: string): string | null {
   return null;
 }
 
-function toYouTubeIframe(videoId: string): string {
-  return `<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;max-width:100%"><iframe style="position:absolute;top:0;left:0;width:100%;height:100%" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe></div>`;
+function responsiveIframe(src: string, paddingBottom = '56.25%'): string {
+  return `<div style="position:relative;padding-bottom:${paddingBottom};height:0;overflow:hidden;max-width:100%"><iframe style="position:absolute;top:0;left:0;width:100%;height:100%" src="${src}" frameborder="0" allowfullscreen></iframe></div>`;
+}
+
+function extractTikTokId(text: string): string | null {
+  const match = text.match(/tiktok\.com\/@[^/]+\/video\/(\d+)/);
+  return match ? match[1] : null;
+}
+
+function textToEmbed(text: string): string | null {
+  const ytId = extractYouTubeId(text);
+  if (ytId) return responsiveIframe(`https://www.youtube.com/embed/${ytId}`);
+
+  const ttId = extractTikTokId(text);
+  if (ttId) return responsiveIframe(`https://www.tiktok.com/embed/v2/${ttId}`, '177%');
+
+  return null;
 }
 
 export function MediaField({
@@ -88,14 +103,13 @@ export function MediaField({
       }
     }
 
-    // Check for YouTube URL in pasted text
+    // Check for embeddable URLs (YouTube, TikTok) in pasted text
     const text = e.clipboardData?.getData('text/plain')?.trim();
     if (text) {
-      const videoId = extractYouTubeId(text);
-      if (videoId) {
+      const embed = textToEmbed(text);
+      if (embed) {
         e.preventDefault();
-        const iframe = toYouTubeIframe(videoId);
-        const newValue = value ? `${value}\n${iframe}` : iframe;
+        const newValue = value ? `${value}\n${embed}` : embed;
         onChange(name, newValue);
       }
     }
