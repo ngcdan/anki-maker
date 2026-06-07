@@ -57,21 +57,30 @@ class AnkiService {
     // Clone fields to avoid mutating the original
     const cleanFields = { ...note.fields };
 
-    // Add picture attachments if present
-    // AnkiConnect auto-inserts <img> tags for picture params,
-    // so strip any existing <img> tags from fields that have images
-    const pictures = note.images?.map(img => {
-      for (const field of img.fields) {
-        if (cleanFields[field]) {
-          cleanFields[field] = cleanFields[field].replace(/<img\s+src="[^"]*"\s*\/?>/gi, '').trim();
+    // Separate media into pictures and videos for AnkiConnect
+    const pictures: { data: string; filename: string; fields: string[] }[] = [];
+    const videos: { data: string; filename: string; fields: string[] }[] = [];
+
+    if (note.media && note.media.length > 0) {
+      for (const item of note.media) {
+        // Strip any existing media tags from fields
+        for (const field of item.fields) {
+          if (cleanFields[field]) {
+            cleanFields[field] = cleanFields[field]
+              .replace(/<img\s+src="[^"]*"\s*\/?>/gi, '')
+              .replace(/\[sound:[^\]]*\]/gi, '')
+              .trim();
+          }
+        }
+
+        const entry = { data: item.data, filename: item.filename, fields: item.fields };
+        if (item.type === 'video') {
+          videos.push(entry);
+        } else {
+          pictures.push(entry);
         }
       }
-      return {
-        data: img.data,
-        filename: img.filename,
-        fields: img.fields,
-      };
-    });
+    }
 
     const params: any = {
       note: {
@@ -82,8 +91,11 @@ class AnkiService {
       },
     };
 
-    if (pictures && pictures.length > 0) {
+    if (pictures.length > 0) {
       params.note.picture = pictures;
+    }
+    if (videos.length > 0) {
+      params.note.video = videos;
     }
 
     return this.ankiConnect({

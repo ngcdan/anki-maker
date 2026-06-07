@@ -1,9 +1,12 @@
 export type AnkiNoteType = 'Basic' | 'Basic (and reversed card)' | 'Cloze';
 
-export interface ImageAttachment {
+export type MediaType = 'image' | 'video';
+
+export interface MediaAttachment {
   data: string; // base64
   filename: string;
-  fields: string[]; // which fields reference this image
+  fields: string[]; // which fields reference this media
+  type: MediaType;
 }
 
 export interface Note {
@@ -13,7 +16,7 @@ export interface Note {
   fields: Record<string, string>;
   tags: string[];
   created?: boolean;
-  images?: ImageAttachment[];
+  media?: MediaAttachment[];
 }
 
 export interface SuggestOptions {

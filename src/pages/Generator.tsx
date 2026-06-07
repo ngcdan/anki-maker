@@ -7,7 +7,7 @@ import { openaiService } from '../services/openaiService';
 import { OpenAIKeyContext } from '../contexts/OpenAIKeyContext';
 import { DEFAULT_SETTINGS } from '../shared';
 import { useLocalStorage } from '../hooks';
-import { Note, AnkiNoteType, ImageAttachment } from '../shared';
+import { Note, AnkiNoteType, MediaAttachment, MediaType } from '../shared';
 import { getFieldsForType } from '../shared/noteTypes';
 
 function App() {
@@ -23,7 +23,7 @@ function App() {
 
   // Manual mode state
   const [manualFields, setManualFields] = useState<Record<string, string>>({});
-  const [manualImages, setManualImages] = useState<Record<string, ImageAttachment>>({});
+  const [manualMedia, setManualMedia] = useState<Record<string, MediaAttachment>>({});
 
   // OpenAI Key context
   const { openAIKey } = useContext(OpenAIKeyContext);
@@ -51,7 +51,7 @@ function App() {
   useEffect(() => {
     const fields = getFieldsForType(noteType);
     setManualFields(fields.reduce((acc, f) => ({ ...acc, [f]: '' }), {} as Record<string, string>));
-    setManualImages({});
+    setManualMedia({});
   }, [noteType]);
 
   // AI Generation mutation
@@ -102,15 +102,15 @@ function App() {
     setManualFields(prev => ({ ...prev, [name]: value }));
   };
 
-  const onManualImageAdd = (fieldName: string, base64: string, filename: string) => {
-    setManualImages(prev => ({
+  const onManualMediaAdd = (fieldName: string, base64: string, filename: string, type: MediaType) => {
+    setManualMedia(prev => ({
       ...prev,
-      [fieldName]: { data: base64, filename, fields: [fieldName] },
+      [fieldName]: { data: base64, filename, fields: [fieldName], type },
     }));
   };
 
-  const onManualImageRemove = (fieldName: string) => {
-    setManualImages(prev => {
+  const onManualMediaRemove = (fieldName: string) => {
+    setManualMedia(prev => {
       const next = { ...prev };
       delete next[fieldName];
       return next;
@@ -118,20 +118,20 @@ function App() {
   };
 
   const handleManualSubmit = () => {
-    const images = Object.values(manualImages);
+    const mediaList = Object.values(manualMedia);
     const note: Note = {
       key: crypto.randomUUID(),
       modelName: noteType,
       deckName,
       fields: { ...manualFields },
       tags: [],
-      images: images.length > 0 ? images : undefined,
+      media: mediaList.length > 0 ? mediaList : undefined,
     };
     setPendingNotes(prev => [...prev, note]);
     // Reset form
     const fields = getFieldsForType(noteType);
     setManualFields(fields.reduce((acc, f) => ({ ...acc, [f]: '' }), {} as Record<string, string>));
-    setManualImages({});
+    setManualMedia({});
   };
 
   const handleCreateCard = (note: Note) => {
@@ -176,10 +176,10 @@ function App() {
             handleSuggestNotes={handleSuggestNotes}
             isLoading={generateNotesMutation.isLoading}
             manualFields={manualFields}
-            manualImages={manualImages}
+            manualMedia={manualMedia}
             onManualFieldChange={onManualFieldChange}
-            onManualImageAdd={onManualImageAdd}
-            onManualImageRemove={onManualImageRemove}
+            onManualMediaAdd={onManualMediaAdd}
+            onManualMediaRemove={onManualMediaRemove}
             onManualSubmit={handleManualSubmit}
           />
         </Grid>

@@ -1,15 +1,16 @@
 import React, { useRef, useState } from 'react';
 import { Box, TextField, Typography, IconButton } from '@mui/material';
 import { Close } from '@mui/icons-material';
+import { MediaType } from '../shared';
 
-interface ImageFieldProps {
+interface MediaFieldProps {
   label: string;
   name: string;
   value: string;
   onChange: (name: string, value: string) => void;
-  onImageAdd: (name: string, base64: string, filename: string) => void;
-  onImageRemove: (name: string) => void;
-  imagePreview?: string;
+  onMediaAdd: (name: string, base64: string, filename: string, type: MediaType) => void;
+  onMediaRemove: (name: string) => void;
+  mediaPreview?: { data: string; type: MediaType };
   disabled?: boolean;
   rows?: number;
 }
@@ -27,36 +28,44 @@ function fileToBase64(file: File): Promise<string> {
   });
 }
 
-export function ImageField({
+function getMediaType(file: File): MediaType | null {
+  if (file.type.startsWith('image/')) return 'image';
+  if (file.type.startsWith('video/')) return 'video';
+  return null;
+}
+
+export function MediaField({
   label,
   name,
   value,
   onChange,
-  onImageAdd,
-  onImageRemove,
-  imagePreview,
+  onMediaAdd,
+  onMediaRemove,
+  mediaPreview,
   disabled = false,
   rows = 3,
-}: ImageFieldProps) {
+}: MediaFieldProps) {
   const [dragOver, setDragOver] = useState(false);
   const inputRef = useRef<HTMLDivElement>(null);
 
-  const handleImage = async (file: File) => {
-    if (!file.type.startsWith('image/')) return;
+  const handleFile = async (file: File) => {
+    const type = getMediaType(file);
+    if (!type) return;
     const base64 = await fileToBase64(file);
-    const ext = file.type.split('/')[1] || 'png';
-    const filename = `img_${Date.now()}.${ext}`;
-    onImageAdd(name, base64, filename);
+    const ext = file.type.split('/')[1] || (type === 'image' ? 'png' : 'mp4');
+    const prefix = type === 'image' ? 'img' : 'vid';
+    const filename = `${prefix}_${Date.now()}.${ext}`;
+    onMediaAdd(name, base64, filename, type);
   };
 
   const handlePaste = async (e: React.ClipboardEvent) => {
     const items = e.clipboardData?.items;
     if (!items) return;
     for (const item of Array.from(items)) {
-      if (item.type.startsWith('image/')) {
+      if (item.type.startsWith('image/') || item.type.startsWith('video/')) {
         e.preventDefault();
         const file = item.getAsFile();
-        if (file) await handleImage(file);
+        if (file) await handleFile(file);
         return;
       }
     }
@@ -66,7 +75,7 @@ export function ImageField({
     e.preventDefault();
     setDragOver(false);
     const files = e.dataTransfer?.files;
-    if (files?.[0]) await handleImage(files[0]);
+    if (files?.[0]) await handleFile(files[0]);
   };
 
   return (
@@ -86,7 +95,7 @@ export function ImageField({
         name={name}
         disabled={disabled}
         size="small"
-        placeholder="Nhập text hoặc paste ảnh (Ctrl+V)..."
+        placeholder="Nhập text, paste ảnh hoặc kéo thả video..."
         sx={{
           '& .MuiOutlinedInput-root': {
             borderColor: dragOver ? 'primary.main' : undefined,
@@ -94,25 +103,33 @@ export function ImageField({
           },
         }}
       />
-      {imagePreview && (
+      {mediaPreview && (
         <Box sx={{ mt: 1, position: 'relative', display: 'inline-block' }}>
-          <img
-            src={`data:image/png;base64,${imagePreview}`}
-            alt="preview"
-            style={{ maxWidth: '100%', maxHeight: 120, borderRadius: 8, border: '1px solid #e0e0e0' }}
-          />
+          {mediaPreview.type === 'image' ? (
+            <img
+              src={`data:image/png;base64,${mediaPreview.data}`}
+              alt="preview"
+              style={{ maxWidth: '100%', maxHeight: 120, borderRadius: 8, border: '1px solid #e0e0e0' }}
+            />
+          ) : (
+            <video
+              src={`data:video/mp4;base64,${mediaPreview.data}`}
+              controls
+              style={{ maxWidth: '100%', maxHeight: 120, borderRadius: 8, border: '1px solid #e0e0e0' }}
+            />
+          )}
           <IconButton
             size="small"
-            onClick={() => onImageRemove(name)}
+            onClick={() => onMediaRemove(name)}
             sx={{ position: 'absolute', top: -8, right: -8, bgcolor: 'white', boxShadow: 1 }}
           >
             <Close fontSize="small" />
           </IconButton>
         </Box>
       )}
-      {!imagePreview && (
+      {!mediaPreview && (
         <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
-          Paste ảnh (Ctrl+V) hoặc kéo thả vào đây
+          Paste ảnh/video (Ctrl+V) hoặc kéo thả vào đây
         </Typography>
       )}
     </Box>

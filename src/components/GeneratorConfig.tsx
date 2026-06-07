@@ -3,7 +3,7 @@ import { Box, TextField, Button, Alert, CircularProgress, FormControl, InputLabe
 import { Send, SmartToy, Edit } from '@mui/icons-material';
 import { ApiKeyManager } from '.';
 import { ManualEditor } from './ManualEditor';
-import { AnkiNoteType, ImageAttachment } from '../shared';
+import { AnkiNoteType, MediaAttachment, MediaType } from '../shared';
 import { NOTE_TYPES } from '../shared/noteTypes';
 
 type Mode = 'ai' | 'manual';
@@ -23,10 +23,10 @@ interface GeneratorConfigProps {
   handleSuggestNotes: () => void;
   isLoading: boolean;
   manualFields: Record<string, string>;
-  manualImages: Record<string, ImageAttachment>;
+  manualMedia: Record<string, MediaAttachment>;
   onManualFieldChange: (name: string, value: string) => void;
-  onManualImageAdd: (fieldName: string, base64: string, filename: string) => void;
-  onManualImageRemove: (fieldName: string) => void;
+  onManualMediaAdd: (fieldName: string, base64: string, filename: string, type: MediaType) => void;
+  onManualMediaRemove: (fieldName: string) => void;
   onManualSubmit: () => void;
 }
 
@@ -34,8 +34,8 @@ export function GeneratorConfig({
   ankiLoading, ankiError, deckName, setDeckName, decks,
   noteType, setNoteType, mode, setMode,
   prompt, setPrompt, handleSuggestNotes, isLoading,
-  manualFields, manualImages, onManualFieldChange,
-  onManualImageAdd, onManualImageRemove, onManualSubmit,
+  manualFields, manualMedia, onManualFieldChange,
+  onManualMediaAdd, onManualMediaRemove, onManualSubmit,
 }: GeneratorConfigProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -114,10 +114,10 @@ export function GeneratorConfig({
             <ManualEditor
               noteType={noteType}
               fields={manualFields}
-              images={manualImages}
+              media={manualMedia}
               onFieldChange={onManualFieldChange}
-              onImageAdd={onManualImageAdd}
-              onImageRemove={onManualImageRemove}
+              onMediaAdd={onManualMediaAdd}
+              onMediaRemove={onManualMediaRemove}
               onSubmit={onManualSubmit}
               isLoading={isLoading}
             />

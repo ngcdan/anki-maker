@@ -1,16 +1,16 @@
 import { Box, Button, CircularProgress } from '@mui/material';
 import { Add } from '@mui/icons-material';
-import { ImageField } from './ImageField';
-import { AnkiNoteType, ImageAttachment } from '../shared';
+import { MediaField } from './MediaField';
+import { AnkiNoteType, MediaAttachment, MediaType } from '../shared';
 import { getFieldsForType } from '../shared/noteTypes';
 
 interface ManualEditorProps {
   noteType: AnkiNoteType;
   fields: Record<string, string>;
-  images: Record<string, ImageAttachment>;
+  media: Record<string, MediaAttachment>;
   onFieldChange: (name: string, value: string) => void;
-  onImageAdd: (fieldName: string, base64: string, filename: string) => void;
-  onImageRemove: (fieldName: string) => void;
+  onMediaAdd: (fieldName: string, base64: string, filename: string, type: MediaType) => void;
+  onMediaRemove: (fieldName: string) => void;
   onSubmit: () => void;
   isLoading: boolean;
 }
@@ -18,28 +18,28 @@ interface ManualEditorProps {
 export function ManualEditor({
   noteType,
   fields,
-  images,
+  media,
   onFieldChange,
-  onImageAdd,
-  onImageRemove,
+  onMediaAdd,
+  onMediaRemove,
   onSubmit,
   isLoading,
 }: ManualEditorProps) {
   const fieldNames = getFieldsForType(noteType);
-  const hasContent = fieldNames.some(f => fields[f]?.trim() || images[f]);
+  const hasContent = fieldNames.some(f => fields[f]?.trim() || media[f]);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       {fieldNames.map(fieldName => (
-        <ImageField
+        <MediaField
           key={fieldName}
           label={fieldName}
           name={fieldName}
           value={fields[fieldName] || ''}
           onChange={onFieldChange}
-          onImageAdd={onImageAdd}
-          onImageRemove={onImageRemove}
-          imagePreview={images[fieldName]?.data}
+          onMediaAdd={onMediaAdd}
+          onMediaRemove={onMediaRemove}
+          mediaPreview={media[fieldName] ? { data: media[fieldName].data, type: media[fieldName].type } : undefined}
           disabled={isLoading}
           rows={4}
         />
