@@ -89,11 +89,12 @@ class AnkiService {
       }
     }
 
-    // Ensure no field is completely empty (AnkiConnect rejects empty notes)
-    // Also handles cases where content is only HTML tags (e.g. iframe) with no text
+    // Ensure no field is completely empty (AnkiConnect strips HTML then rejects if no text remains)
+    // Use zero-width space (\u200b) as invisible placeholder
     for (const key of Object.keys(cleanFields)) {
-      if (!cleanFields[key] || !cleanFields[key].trim()) {
-        cleanFields[key] = '&nbsp;';
+      const stripped = cleanFields[key].replace(/<[^>]*>/g, '').trim();
+      if (!stripped) {
+        cleanFields[key] = '\u200b' + cleanFields[key];
       }
     }
 
