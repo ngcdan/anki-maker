@@ -47,7 +47,7 @@ function extractYouTubeId(text: string): string | null {
 }
 
 function toYouTubeIframe(videoId: string): string {
-  return `<iframe width="560" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
+  return `<iframe width="700" height="450" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
 }
 
 export function MediaField({
