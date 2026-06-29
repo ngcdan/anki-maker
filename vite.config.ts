@@ -13,9 +13,6 @@ export default defineConfig({
             if (id.includes('react') || id.includes('react-dom')) {
               return 'react-vendor';
             }
-            if (id.includes('react-router')) {
-              return 'router-vendor';
-            }
             if (id.includes('@tanstack/react-query')) {
               return 'query-vendor';
             }
@@ -66,7 +63,6 @@ export default defineConfig({
     include: [
       'react',
       'react-dom',
-      'react-router-dom',
       '@tanstack/react-query',
       '@mui/material',
       '@mui/icons-material',
